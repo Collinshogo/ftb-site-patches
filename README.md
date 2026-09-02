@@ -58,5 +58,5 @@ Round 4 (re-cut, same file): Streaks is TradingView's per-trade streak chart (Co
 stats); the trade-list CSV link sits under the report; **Buy now** at the top (hero) and the middle (under the
 report); the combined-books index row takes each book back to one multiple, merges the two curves and sizes to the
 largest whole multiplier holding the merged drawdown under $10,000 (never below ×3) — currently ×6, drawdown 1× and
-at ×K both shown; a profitable worst month renders green.
+at ×K both shown; a profitable worst month renders green. The Vault (gold 08:30 range fade) is dropped from the lineup and its data file removed.
 Same three commands with `v8` in the names.
