@@ -54,4 +54,9 @@ right axis, day strip, Performance-analysis pill row + Breakdown cells), **Perfo
 monthly table · Profits and losses by signal / by side), **Trades** (Distribution histogram + donut, Streaks,
 details), **List of trades** (+ Side column). Zero JS, no inline styles, fits the column at 1400 / 1024 / 375.
 `data/*.json` rows now carry side · signal · qty · return % (columns listed in each file's `trades_columns`).
+Round 4 (re-cut, same file): Streaks is TradingView's per-trade streak chart (Count / Amount toggle, four streak
+stats); the trade-list CSV link sits under the report; **Buy now** at the top (hero) and the middle (under the
+report); the combined-books index row takes each book back to one multiple, merges the two curves and sizes to the
+largest whole multiplier holding the merged drawdown under $10,000 (never below ×3) — currently ×6, drawdown 1× and
+at ×K both shown; a profitable worst month renders green.
 Same three commands with `v8` in the names.
