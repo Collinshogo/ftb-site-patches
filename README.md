@@ -64,5 +64,5 @@ as the London fade; every product page opens with a centred "$X average monthly 
 headline; the discount sits beside every call to action; the monthly special is a scrolling banner at the top and
 bottom of every page (paused on hover and under reduced-motion); the report's top strip and bottom block are
 compressed, the title block centred with the date / 25 K USD / ticks / bar-close chips on the left; report stat
-cells larger; Headline Risk's worst month verified (Aug 25, a real losing month, not a data error).
+cells larger; Headline Risk's worst month verified (Aug 25, a real losing month, not a data error); the daily-results calendars show up to nine months.
 Same three commands with `v8` in the names.
