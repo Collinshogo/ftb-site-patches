@@ -21,3 +21,20 @@ Merging that branch into `main` is the deploy (GitHub Pages).
 v2 (base 78da080) is superseded by v3 and was removed.
 v3 (base d711af9) is superseded by v4 and was removed.
 v4 (base 5adcbf2) is superseded by v5 and was removed.
+
+## v6 — 2026-09-03 (base: goal33-site `main` @ 8c73a46)
+`site_patch_aft-lineup-v6.patch` — apply from the site repo root on a fresh branch off `main`:
+
+```
+git fetch origin && git checkout -b aft-lineup-v6 origin/main
+git apply --3way site_patch_aft-lineup-v6.patch     # (download the patch from this repo first)
+git add -A && git commit -m "Lineup v6" && git push -u origin aft-lineup-v6
+```
+What it changes: the index spec table is centred in every cell; headings read "Win Rate" and "Profit Factor";
+the Profit column is now **Avg Monthly Profit** in green (e.g. `+$59,023 per month`), Risk/trade and RoR/mo are
+retired from the table (they stay on the product pages); every flagship pane shows its avg monthly profit and win
+rate in the centre; five MGC products join (Midas gold book, The Assay, The Kilo, The Print, The Fix — The Ingot is
+held back until its standalone matches the book leg); every product page carries "This strategy was optimized
+from … to …" + the best-RoDD window statement and a downloadable CSV of that window's trades
+(`strategies/data/<slug>-best-window-trades.csv`). Pipeline: gen_pages → rebuild_index → gen_plan → css restamp
+(all already run; the patch carries the generated pages). `data/` gains the five MGC Strategy-Tester JSONs.
