@@ -65,4 +65,7 @@ headline; the discount sits beside every call to action; the monthly special is 
 bottom of every page (paused on hover and under reduced-motion); the report's top strip and bottom block are
 compressed, the title block centred with the date / 25 K USD / ticks / bar-close chips on the left; report stat
 cells larger; Headline Risk's worst month verified (Aug 25, a real losing month, not a data error); the daily-results calendars show up to nine months.
+Round 6 (re-cut, same file): the index gains **Coming soon** sections for MYM, M2K, MES, additional gold and SIL, listing
+only constructions that passed the validation sweep (no prices or links yet); Recoil (MNQ 08:30 failed-break reclaim) is
+registered as an unlisted draft pending a larger-target vector.
 Same three commands with `v8` in the names.
