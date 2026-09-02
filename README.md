@@ -111,3 +111,14 @@ warning no longer applies.
 
 ⚠ If `main` has moved and the patch conflicts, do NOT hand-resolve `catalog2.json` — take the URLs
 from `WHOP_PRODUCT_URLS.md` beside this file and re-apply the three source edits.
+
+
+## `site_patch_the-books-page.patch` — 2026-09-03 (base: `main` @ 31bbe8f)
+Fixes the dead **Continuum + Midas** link. The books moved into the `strategies` list and `CAT["books"]` went empty, so
+`gen_pages.py` silently stopped generating `/strategies/the-books.html` while the index row, both book pages' breadcrumb
+and their back-link still pointed at it. The generator now derives the books list from `strategies` (kind == "book"),
+the bundle page is generated again (Continuum + Midas, $1,200/mo, copy corrected from "all four engines"), and the
+index row links to the page instead of the `/#books` anchor.
+Apply: `git checkout -b aft-the-books-page main && git am < site_patch_the-books-page.patch`, then
+`python3 _tools/gen_pages.py && python3 _tools/rebuild_index.py && python3 _tools/gen_plan.py`, verify
+`ls strategies/the-books.html` and that the index row href is `/strategies/the-books.html`, and push.
