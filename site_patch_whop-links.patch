@@ -1,9 +1,9 @@
 From 2d5c6bac04cb0e0f5574a70609a24035a369babc Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Wed, 2 Sep 2026 16:24:23 +0000
-Subject: [PATCH] The Books bundle page restored: it stopped generating when
- the books moved into the strategies list, leaving the Continuum + Midas row
- and both book pages pointing at a dead link
+Subject: [PATCH 1/2] The Books bundle page restored: it stopped generating
+ when the books moved into the strategies list, leaving the Continuum + Midas
+ row and both book pages pointing at a dead link
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01QsHCu52Nqo7EQz79TKTa9E
@@ -647,6 +647,74 @@ index af75603..5fb60b6 100644
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
+-- 
+2.43.0
+
+
+From b0b4d0906a69b09ea55ae0ff15a479d7df62bc28 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 2 Sep 2026 21:06:07 +0000
+Subject: [PATCH 2/2] Buy links point at the real AFT store products; The Books
+ and All-Access pages carry their own checkout link
+
+Every link comes from the store's own product records (each carries its catalog slug in metadata), not from a guessed route. Plans verified: 22 products, monthly renewal, prices matching the catalog.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01QsHCu52Nqo7EQz79TKTa9E
+---
+ _tools/catalog2.json      | 5 +++--
+ _tools/gen_pages.py       | 3 ++-
+ strategies/the-books.html | 2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/_tools/catalog2.json b/_tools/catalog2.json
+index 66b16af..6fcd4ad 100644
+--- a/_tools/catalog2.json
++++ b/_tools/catalog2.json
+@@ -1244,7 +1244,8 @@
+     },
+     "books_all": {
+       "price": 1200,
+-      "combined": 1500
++      "combined": 1500,
++      "whop": "https://whop.com/aft-official/the-books-aft/"
+     },
+     "starter": {
+       "price": 149,
+@@ -1787,4 +1788,4 @@
+       ]
+     ]
+   }
+-}
++}
+\ No newline at end of file
+diff --git a/_tools/gen_pages.py b/_tools/gen_pages.py
+index 87e4a20..df430c9 100644
+--- a/_tools/gen_pages.py
++++ b/_tools/gen_pages.py
+@@ -1452,7 +1452,8 @@ if not PRELAUNCH and HAS_BOOKS_BUNDLE:
+             <ul class="included">{book_rows}</ul>
+             <p class="record-note">The engines we run ourselves. Each book is also sold separately; this tier is both, priced under the pair.</p>
+           </div>""",
+-        f'Not ready for the engines? <a href="/strategies/all-access.html">All-Access — ${BN["all_access"]["price"]:,}/mo</a>')
++        f'Not ready for the engines? <a href="/strategies/all-access.html">All-Access — ${BN["all_access"]["price"]:,}/mo</a>',
++        href=BN["books_all"].get("whop"))
+ 
+ if not PRELAUNCH and HAS_STARTER:
+     ST = BN["starter"]
+diff --git a/strategies/the-books.html b/strategies/the-books.html
+index 45d08f2..6647749 100644
+--- a/strategies/the-books.html
++++ b/strategies/the-books.html
+@@ -73,7 +73,7 @@
+   <p class="bb-hook">Backtest Verified &middot; TradingView invite-only script &middot; alerts ready for automation</p>
+   <ul class="bb-list"><li><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" vector-effect="non-scaling-stroke"/></svg><span>Activated to your TradingView username within 24h</span></li><li><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" vector-effect="non-scaling-stroke"/></svg><span>The exact record on this page, costs modeled</span></li><li><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" vector-effect="non-scaling-stroke"/></svg><span>60-day Performs-as-Published + 7-day money-back &middot; <a href="/terms.html">terms</a></span></li><li><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" vector-effect="non-scaling-stroke"/></svg><span>Cancel anytime</span></li></ul>
+   <!-- WHOP: checkout (The Books bundle) -->
+-  <span class="bb-cta"><a class="btn btn-buy bb-btn" href="https://whop.com/aft-official/" rel="noopener">Get access &mdash; $1,200/mo</a><span class="pdp-disc">30% off &middot; code <b>SEPT30</b></span></span>
++  <span class="bb-cta"><a class="btn btn-buy bb-btn" href="https://whop.com/aft-official/the-books-aft/" rel="noopener">Get access &mdash; $1,200/mo</a><span class="pdp-disc">30% off &middot; code <b>SEPT30</b></span></span>
+   <p class="bb-safe">Secure checkout via Whop &middot; no contract &middot; cancel anytime</p>
+   
+ </aside>
 -- 
 2.43.0
 

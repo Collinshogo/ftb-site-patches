@@ -83,9 +83,9 @@ The Whop store is created by the Whop publisher in the research repo, which the 
 3. The site session runs, from the site clone root: `python3 <patches>/apply_whop_links.py <patches>/data/whop_links.json`,
    regenerates (`_tools/rebuild_index.py`, `gen_pages.py`, `gen_plan.py`), verifies no `goal33systems` link remains
    (`grep -c goal33systems index.html strategies/*.html`), commits and pushes.
-**Status 2026-09-03:** the publisher has NOT run yet (it needs a session started with the `WHOP_API_KEY` /
-`WHOP_COMPANY_ID` environment variables). Until `data/whop_links.json` exists here there is no links patch to apply;
-nothing should be guessed — a wrong link sends a buyer to the wrong product.
+**Status 2026-09-03 (evening):** DONE — the store holds all 22 products, `data/whop_links.json` is populated from the
+store's own records, and `site_patch_whop-links.patch` has the links already applied. Re-run `apply_whop_links.py` only
+if the catalog is rebuilt from a source that drops the `whop` fields.
 
 ## whop-links-v4_2026-09-02.patch — point every buy link at the AFT Whop store
 Base: site `main` @ `31bbe8f`. **Supersedes v3** (v3 predates the combined-books product and is deleted).
@@ -113,7 +113,26 @@ warning no longer applies.
 from `WHOP_PRODUCT_URLS.md` beside this file and re-apply the three source edits.
 
 
-## `site_patch_the-books-page.patch` — 2026-09-03 (base: `main` @ 31bbe8f)
+## `site_patch_whop-links.patch` — 2026-09-03 (base: `main` @ 31bbe8f) — **supersedes site_patch_the-books-page.patch**
+Two commits, both needed:
+1. **The Books bundle page restored.** The books moved into the `strategies` list and `CAT["books"]` went empty, so
+   `gen_pages.py` silently stopped generating `/strategies/the-books.html` while the index's Continuum + Midas row, both
+   book pages' breadcrumb and their back-link still pointed at it. The generator now derives its books list from
+   `strategies` (kind == "book"); the page is generated again with corrected copy (both engines, $1,200/mo) and the
+   index row links to the page instead of the `/#books` anchor.
+2. **Real checkout links.** Every buy link now points at the live AFT store product. The links are NOT guessed: they
+   come from the store's own product records, each of which carries its site catalog slug in `metadata.aft_slug`, so
+   the mapping is exact (e.g. `closer` → `counterweight-aft`, `meridian` → `the-pendulum-aft`, `relay` →
+   `headline-risk-aft` — three cases a name-based guess would have got wrong). `whop_store` is set to the store root,
+   and The Books / All-Access pages carry their own product links. `data/whop_links.json` holds the slug → {id, url}
+   map used, for re-application after any regeneration.
+   **Verified:** 22 products live, each with a visible monthly renewal plan whose price matches the catalog; 42 checkout
+   links across the index, plan finder and product pages; zero references to the old store remain.
+Apply: `git checkout -b aft-whop-links main && git am < site_patch_whop-links.patch`, then regenerate
+(`python3 _tools/gen_pages.py && python3 _tools/rebuild_index.py && python3 _tools/gen_plan.py`), verify
+`grep -c goal33systems index.html strategies/*.html` is zero everywhere and `ls strategies/the-books.html` exists.
+
+## ~~`site_patch_the-books-page.patch`~~ — superseded by `site_patch_whop-links.patch` (which contains this commit)
 Fixes the dead **Continuum + Midas** link. The books moved into the `strategies` list and `CAT["books"]` went empty, so
 `gen_pages.py` silently stopped generating `/strategies/the-books.html` while the index row, both book pages' breadcrumb
 and their back-link still pointed at it. The generator now derives the books list from `strategies` (kind == "book"),
