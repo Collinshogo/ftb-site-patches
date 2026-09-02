@@ -87,27 +87,27 @@ The Whop store is created by the Whop publisher in the research repo, which the 
 `WHOP_COMPANY_ID` environment variables). Until `data/whop_links.json` exists here there is no links patch to apply;
 nothing should be guessed — a wrong link sends a buyer to the wrong product.
 
-## whop-links-v3_2026-09-02.patch — point every buy link at the AFT Whop store
-Base: site `main` @ `fd13746`. The deployed site still sends every buy button to the old
-`goal33systems` Whop; the 20 strategy products + All-Access now live on `aft-official`.
+## whop-links-v4_2026-09-02.patch — point every buy link at the AFT Whop store
+Base: site `main` @ `31bbe8f`. **Supersedes v3** (v3 predates the combined-books product and is deleted).
 
-**Source files only** — `_tools/catalog2.json` (each strategy's `whop`, `bundles.all_access.whop`,
-`whop_store`) and a one-line `_tools/gen_pages.py` change so the All-Access buy box links to the
-All-Access product instead of the store front. No generated HTML: the v1 patch carried it and went
-stale the moment `main` was rebuilt.
+Three source files, no generated HTML:
+- `_tools/catalog2.json` — each strategy's `whop`, `bundles.all_access.whop`,
+  `bundles.books_all.whop`, and `whop_store` → `https://whop.com/aft-official/`
+- `_tools/gen_pages.py` — the All-Access buy box links to its own product, not the store front
+- `_tools/rebuild_index.py` — **the combined books row** (Continuum + Midas, $1,200/mo, the site's
+  number-one row) hardcoded `whop: WHOP_STORE`; it now reads `bundles.books_all.whop`
 
     git checkout -b whop-links main
-    git am -3 whop-links-v3_2026-09-02.patch
+    git am -3 whop-links-v4_2026-09-02.patch
     python3 _tools/gen_pages.py && python3 _tools/rebuild_index.py && python3 _tools/gen_plan.py
     git commit -am "Regenerate pages for the AFT store links"
     git push -u origin whop-links
 
-Verified on a clean checkout of `fd13746`: after the three generators, zero `goal33systems` in any
-live-facing page and 125 `aft-official` links.
+Verified on a clean checkout of `31bbe8f`: after the generators, zero `goal33systems` in any
+live-facing page, 98 `aft-official` links, and the combined books row pointing at `the-books-aft`.
 
-⚠ **Do not merge yet.** All 21 Whop products are HIDDEN; merging points live buy buttons at pages
-only the owner can see. Push the branch and wait for the visibility flip.
+**All 22 Whop products are now VISIBLE**, so this is safe to merge — the earlier "do not merge"
+warning no longer applies.
 
 ⚠ If `main` has moved and the patch conflicts, do NOT hand-resolve `catalog2.json` — take the URLs
-from `WHOP_PRODUCT_URLS.md` beside this file and re-apply the two source edits. Four products'
-URLs cannot be derived from their slug.
+from `WHOP_PRODUCT_URLS.md` beside this file and re-apply the three source edits.

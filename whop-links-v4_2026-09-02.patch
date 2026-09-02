@@ -1,0 +1,58 @@
+From 4727cb9d0e237b9c3fa2e57e39f6ed1c3a1fa3f5 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 2 Sep 2026 16:10:00 +0000
+Subject: [PATCH] Point every buy link at the AFT Whop store, the combined
+ books row included
+
+whop_store was still https://whop.com/goal33systems/ and no product carried its own link, so every
+buy button went to the old Whop.
+
+- catalog2.json: each strategy's whop field, bundles.all_access.whop, bundles.books_all.whop, and
+  whop_store repointed at https://whop.com/aft-official/.
+- gen_pages.py: bundle_page takes an href, so the All-Access buy box links to the All-Access product
+  rather than the store front.
+- rebuild_index.py: the combined books row (Continuum + Midas, $1,200/mo) hardcoded its whop field to
+  WHOP_STORE, so the site's number-one row sent buyers to the store front. It now takes
+  bundles.books_all.whop, falling back to WHOP_STORE.
+
+The URLs are the ones the Whop API returned at creation; four do not follow the catalog slug
+(undertow -> the-press-aft, relay -> headline-risk-aft, meridian -> the-pendulum-aft, closer ->
+counterweight-aft), so they cannot be derived by rule. See WHOP_PRODUCT_URLS.md.
+
+Source only - run the three generators to rebuild the pages:
+    python3 _tools/gen_pages.py && python3 _tools/rebuild_index.py && python3 _tools/gen_plan.py
+---
+ _tools/catalog2.json    | 3 ++-
+ _tools/rebuild_index.py | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/_tools/catalog2.json b/_tools/catalog2.json
+index 66b16af..906d623 100644
+--- a/_tools/catalog2.json
++++ b/_tools/catalog2.json
+@@ -1244,7 +1244,8 @@
+     },
+     "books_all": {
+       "price": 1200,
+-      "combined": 1500
++      "combined": 1500,
++      "whop": "https://whop.com/aft-official/the-books-aft/"
+     },
+     "starter": {
+       "price": 149,
+diff --git a/_tools/rebuild_index.py b/_tools/rebuild_index.py
+index 575d906..4b1f66c 100644
+--- a/_tools/rebuild_index.py
++++ b/_tools/rebuild_index.py
+@@ -191,7 +191,7 @@ def books_combined():
+         "meta": "MNQ + MGC · 18:00 – market close", "session": "18:00 – market close", "kind": "combined",
+         "price": CAT["bundles"]["books_all"]["price"], "mult": K, "mults": [(p["name"], p.get("mult")) for p, _ in trs],
+         "dd1": dd1, "net1": net1,
+-        "legs": [], "whop": WHOP_STORE, "eq": eq, "daily": daily,
++        "legs": [], "whop": CAT["bundles"]["books_all"].get("whop") or WHOP_STORE, "eq": eq, "daily": daily,
+         "net": net, "dd": dd, "months": months, "rodd": rodd, "n": len(pnls),
+         "best": {"stats": {"RoDD": "%.2f" % rodd, "Months": "%.1f" % months, "Win": "%.1f%%" % (100.0 * len(wins) / len(pnls)),
+                            "PF": "%.2f" % (gp / gl if gl else 0), "Net": "$%.1fk" % (net / 1000), "Max DD": "$%.1fk" % (dd / 1000),
+-- 
+2.43.0
+
