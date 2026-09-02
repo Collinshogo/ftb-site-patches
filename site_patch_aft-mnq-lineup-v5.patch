@@ -1,38 +1,32 @@
-From 647d21861792ea77099ff3210ec075d874fee9cf Mon Sep 17 00:00:00 2001
+From d8496ddebfc97626e61275dcf0f9b57017434747 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Wed, 2 Sep 2026 05:15:51 +0000
-Subject: [PATCH] Logo, configurable promo-code line, and per-trade risk stats
+Date: Wed, 2 Sep 2026 05:34:18 +0000
+Subject: [PATCH] Index: Profit stands out, the drawdown/CTA lines, MNQ/NQ ->
+ MNQ
 
-Ported onto origin/main's 5adcbf2 (re-based once after KCON pushed a small
-table-width CSS fix mid-round; manually replicated that 9-line delta since
-the generated HTML it touched is regenerated fresh anyway), carrying
-everything from aft-mnq-lineup-v3 (79a76e6) plus three owner additions:
+Ported onto origin/main's c2b5e50 (RoDD's size bump dropped, faint column
+separators added -- pure CSS, replicated manually), carrying everything
+from aft-mnq-lineup-v4 (647d218). All four changes are scoped to the index
+page per the owner's ask (rebuild_index.py + main.css):
 
-- Logo: assets/aft-logo.png (985x260) replaces the bmark+text wordmark in
-  the header (all three generators share identical nav/footer markup, so
-  one substitution each) and appears again at 64px in the footer on every
-  page. .brand-logo/.foot-logo classed, no inline style.
-- Promo line: catalog2.json gets a top-level `promo` object ({code, line,
-  note}); {code} is substituted into `line` and rendered next to every real
-  buy button and inside the buy box (gen_pages.py's buybox, gen_plan.py's
-  single_card/starter/cheap-fallback/all-access cards, rebuild_index.py's
-  hero and All-Access line) -- generated, never hand-edited. Documented in
-  CLAUDE.md as the one field to change for a new marketer; the zero-JS
-  one-code-per-build limitation and the affiliate-link alternative are
-  spelled out in both the catalog note and CLAUDE.md.
-- Three new per-trade fields (Risk/trade, Max loss, Return on risk/mo) from
-  the refreshed catalog_entries.json and trades exports: rendered as new
-  rows in the product page's Performance-summary table (both windows) and
-  as new RoDD/mo + Risk/trade + RoR/mo + Mult columns in the index table,
-  with a definition line at each surface's first use.
-- v3's substance (Backtest-verified wording, RoDD/mo headline, Multiplier
-  line, 60-day Performs-as-Published guarantee, plan-finder empty-tier
-  guard) re-applied against KCON's current file structure -- rebuild_index.py
-  and gen_plan.py were rewritten enough since d711af9 (cover-flow, glyph
-  re-import, column order, plan-side panel) that a blind text-diff rebase
-  would not apply; every anchor was re-verified against the live file, and
-  a stale "Continuum and Midas" scope_opts string (Midas was removed before
-  the rebrand existed) was fixed to compute from books_live.
+1. "Net" -> "Profit" on the index table's column header and its <td>s (new
+   .sx-net class: bold, accent green, a size step above its neighbours --
+   the same shape RoDD used to carry before c2b5e50 normalized it back
+   down). It's now the first figure the eye lands on in each row after the
+   name. The cover-flow's .cf-gain figure already carried this exact
+   treatment (bold/accent/2xl) so nothing changed there. Product pages say
+   "Net profit", not bare "Net" -- nothing to rename there for consistency.
+2. One generated line directly above the index table, verbatim: "All
+   strategies simulated based on a $10,000 or less drawdown."
+3. "MNQ/NQ" -> "MNQ" in every generator string that rendered it (docstring,
+   meta description, lede, MNQ table title). catalog2.json's one remaining
+   hit is `_template_strategy`'s field-doc enumerating valid market CODES
+   (MNQ/NQ/MGC/SI/ES as alternatives, not a combined label) -- left as is,
+   it isn't the same kind of string.
+4. A new visible (not grey-caption) CTA line above the hero's lede: "Select
+   any of the profitable strategies below to see the trade details and
+   results." Every index row's name already linked to its product page
+   (unchanged from the cover-flow-return commit) -- verified, not re-added.
 
 Regenerated in order (gen_pages -> rebuild_index -> gen_plan), css hash
 recomputed and restamped on all 18 pages.
@@ -47,7 +41,7 @@ Claude-Session: https://claude.ai/code/session_01QsHCu52Nqo7EQz79TKTa9E
  _tools/gen_pages.py                           |   76 +-
  _tools/gen_plan.py                            |   79 +-
  _tools/glyphs.py                              |    8 +
- _tools/rebuild_index.py                       |   35 +-
+ _tools/rebuild_index.py                       |   50 +-
  _tools/trades/aftershock.json                 |    2 +-
  _tools/trades/assay.json                      |    1 -
  _tools/trades/closer.json                     |    2 +-
@@ -68,8 +62,8 @@ Claude-Session: https://claude.ai/code/session_01QsHCu52Nqo7EQz79TKTa9E
  _tools/trades/undercurrent.json               |    1 +
  _tools/trades/undertow.json                   |    2 +-
  assets/aft-logo.png                           |  Bin 0 -> 135575 bytes
- assets/main.css                               |   26 +-
- index.html                                    |   39 +-
+ assets/main.css                               |   44 +-
+ index.html                                    |   52 +-
  plan.html                                     |  296 +--
  privacy.html                                  |    5 +-
  sitemap.xml                                   |   16 +-
@@ -95,7 +89,7 @@ Claude-Session: https://claude.ai/code/session_01QsHCu52Nqo7EQz79TKTa9E
  strategies/undertow.html                      |   99 +-
  success.html                                  |    5 +-
  terms.html                                    |   25 +-
- 55 files changed, 3170 insertions(+), 3620 deletions(-)
+ 55 files changed, 3205 insertions(+), 3631 deletions(-)
  create mode 100644 _tools/archive/catalog2.removed-2026-09-02.json
  delete mode 100644 _tools/trades/assay.json
  create mode 100644 _tools/trades/confluence.json
@@ -124,15 +118,15 @@ Claude-Session: https://claude.ai/code/session_01QsHCu52Nqo7EQz79TKTa9E
  create mode 100644 strategies/undercurrent.html
 
 diff --git a/404.html b/404.html
-index 9eb50a7..a9e8014 100644
+index de8255f..3850e44 100644
 --- a/404.html
 +++ b/404.html
 @@ -19,14 +19,14 @@
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
@@ -3070,9 +3064,18 @@ index 6e127c1..2a3e6bf 100644
      "daybreak": '<path d="M14.8 3.6a8.4 8.4 0 1 0 5.6 13.9A8.4 8.4 0 0 1 14.8 3.6z"/><path d="M5.6 5.8v2.6M4.3 7.1h2.6" opacity=".7"/>',
      # The Assay (slug assay) — the assayer's flask
 diff --git a/_tools/rebuild_index.py b/_tools/rebuild_index.py
-index 8131db0..1674589 100644
+index 8131db0..8d85eec 100644
 --- a/_tools/rebuild_index.py
 +++ b/_tools/rebuild_index.py
+@@ -2,7 +2,7 @@
+ 
+ The catalog page is an exchange-style contract specification document: white
+ paper, hairline rules, one exchange blue, tabular-mono figures. Two ranked
+-tables (MNQ/NQ, then MGC), books ranked inline and labeled as combinations.
++tables (MNQ, then MGC), books ranked inline and labeled as combinations.
+ The whole file is generated from catalog2.json — no hand-edited regions.
+ The previous quant-terminal index and its generator are archived at
+ _tools/archive/*quantterminal-20260901* and git tag pre-rebrand-20260901.
 @@ -19,6 +19,8 @@ BASE = os.path.dirname(_HERE)
  CAT = json.load(open(os.path.join(_HERE, "catalog2.json"), encoding="utf-8"))
  S = CAT["strategies"]
@@ -3112,7 +3115,8 @@ index 8131db0..1674589 100644
 +        f'<td class="sx-f sx-rodd">{rodd_mo_pct(b) if b.get("RoDD") else "—"}</td>'
          f'<td class="sx-f">{esc(b.get("Win", "—"))}</td>'
          f'<td class="sx-f">{esc(b.get("PF", "—"))}</td>'
-         f'<td class="sx-f">{esc(b.get("Net", "—"))}</td>'
+-        f'<td class="sx-f">{esc(b.get("Net", "—"))}</td>'
++        f'<td class="sx-f sx-net">{esc(b.get("Net", "—"))}</td>'
 +        f'<td class="sx-f">{esc(b.get("Risk/trade", "—"))}</td>'
 +        f'<td class="sx-f">{esc(b.get("Return on risk/mo", "—"))}</td>'
 +        f'<td class="sx-f">{("&times;" + str(p["mult"])) if p.get("mult") else "—"}</td>'
@@ -3132,13 +3136,23 @@ index 8131db0..1674589 100644
 +      <th scope="col" class="sx-f sx-rodd"><abbr title="Average monthly return on drawdown">RoDD/mo</abbr></th>
        <th scope="col" class="sx-f">Win</th>
        <th scope="col" class="sx-f">PF</th>
-       <th scope="col" class="sx-f">Net</th>
+-      <th scope="col" class="sx-f">Net</th>
++      <th scope="col" class="sx-f sx-net">Profit</th>
 +      <th scope="col" class="sx-f"><abbr title="Median losing trade at the shown multiplier">Risk/trade</abbr></th>
 +      <th scope="col" class="sx-f"><abbr title="Average monthly net profit divided by risk per trade">RoR/mo</abbr></th>
 +      <th scope="col" class="sx-f"><abbr title="Multiplier the published figures are shown at">Mult</abbr></th>
        <th scope="col" class="sx-s">Session</th>
        <th scope="col" class="sx-f sx-p">$ / mo</th>
      </tr></thead>
+@@ -206,7 +220,7 @@ page = f"""<!doctype html>
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+ <title>FuturesTradingBots — MNQ &amp; MGC futures strategies</title>
+-<meta name="description" content="Futures strategies for MNQ/NQ and MGC, delivered as TradingView invite-only scripts. Best validated window and full record published for every strategy.">
++<meta name="description" content="Futures strategies for MNQ and MGC, delivered as TradingView invite-only scripts. Best validated window and full record published for every strategy.">
+ <link rel="canonical" href="https://futurestradingbots.com/">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&amp;family=Fragment+Mono&amp;display=swap" rel="stylesheet">
 @@ -217,7 +231,7 @@ page = f"""<!doctype html>
  
  <header>
@@ -3148,9 +3162,14 @@ index 8131db0..1674589 100644
      <nav class="nav-links" aria-label="Main">
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
-@@ -247,8 +261,12 @@ page = f"""<!doctype html>
-       <p class="sx-lede">{len(S)} futures strategies for MNQ/NQ and MGC, sold as TradingView invite-only scripts
+@@ -244,16 +258,23 @@ page = f"""<!doctype html>
+   <div class="sx-hero">
+     <div class="sx-hero-copy">
+       <h1 class="sx-hero-h1">Strategies engineered to be <span class="hl">measured</span>, not believed.</h1>
+-      <p class="sx-lede">{len(S)} futures strategies for MNQ/NQ and MGC, sold as TradingView invite-only scripts
++      <p class="sx-lede">{len(S)} futures strategies for MNQ and MGC, sold as TradingView invite-only scripts
        and activated to your TradingView username within 24 hours.</p>
++      <p class="sx-cta">Select any of the profitable strategies below to see the trade details and results.</p>
        <p class="sx-note">Figures below are each strategy&rsquo;s best validated window, commissions and slippage modeled.
 -      The full record, good or ugly, is published on every specification page. Ranked by return on maximum
 -      drawdown (RoDD). Net is the window&rsquo;s closed-trade total at the validated run&rsquo;s position size.</p>
@@ -3163,7 +3182,15 @@ index 8131db0..1674589 100644
      </div>
      <div class="coverflow" aria-label="Flagship strategies">{cf_block()}</div>
    </div>
-@@ -261,10 +279,13 @@ page = f"""<!doctype html>
+ 
+-{table("MNQ / NQ · Nasdaq futures", mnq_rows, len(mnq))}
++  <p class="sx-ddnote">All strategies simulated based on a $10,000 or less drawdown.</p>
++
++{table("MNQ · Nasdaq futures", mnq_rows, len(mnq))}
+ 
+ {table("MGC · Gold futures", mgc_rows, len(mgc))}
+ 
+@@ -261,10 +282,13 @@ page = f"""<!doctype html>
    All {len(S)} strategies under one subscription: <a href="/strategies/all-access.html">All-Access — ${CAT["bundles"]["all_access"]["price"]} / mo</a>.
    Not sure where to start: <a href="/plan.html">the plan finder</a> ranks them against your drawdown budget.</p>
  
@@ -5952,10 +5979,21 @@ literal 0
 HcmV?d00001
 
 diff --git a/assets/main.css b/assets/main.css
-index fd01f1f..85a6da7 100644
+index 1142321..d4fb32e 100644
 --- a/assets/main.css
 +++ b/assets/main.css
-@@ -52,7 +52,9 @@
+@@ -12,6 +12,10 @@
+        → covers .chip-verified text, .stable .pf cells, and PF
+          hero/featured figures on panel (8.6) and on the raised
+          row-hover background (8.0)
++       → also covers .sx-net (the index table's Profit column, bold +
++         accent so it is the first figure the eye lands on in each row)
++         and .sx-cta (the "select a strategy" line on the index) — same
++         pair, 8.6 / 8.0
+      pill-green: accent #56C8A2 on accent-dim composited over
+        bg / panel / raised = 8.3 / 7.5 / 6.9
+      on-accent #06231A on accent/accent-hi   =  8.1 /  9.6
+@@ -52,7 +56,9 @@
         meridian/pendulum orchid #E88FC6 7.8, closer dusk-lilac
         #CBA8E8 8.7, daybreak dawn-peach #FFC9A8 12.0, greenwich
         fog-slate #AEC6D9 10.1, assay apple #A8E36B 11.7, kilo
@@ -5966,7 +6004,7 @@ index fd01f1f..85a6da7 100644
         gold #E8C15C 10.3,
         neon green #7CFFB2 14.2 on panel (AA); themed product pages reuse
         these as the --buy channel: CTA ink #1F1102 on the darkest
-@@ -285,6 +287,11 @@ header {
+@@ -285,6 +291,11 @@ header {
  .bmark-ant  { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; }
  .bmark-node { fill: var(--accent); }
  .bmark-eye  { fill: var(--accent); }
@@ -5978,7 +6016,7 @@ index fd01f1f..85a6da7 100644
  .brand small {
    display: block;
    font-size: var(--fs-2xs); font-weight: 400;
-@@ -1552,6 +1559,8 @@ section { border-bottom: 1px solid var(--line); padding: var(--sp-6) 0; }
+@@ -1552,6 +1563,8 @@ section { border-bottom: 1px solid var(--line); padding: var(--sp-6) 0; }
  
  /* ── footer ────────────────────────────────────────────────── */
  footer { padding: var(--sp-7) 0; }
@@ -5987,7 +6025,7 @@ index fd01f1f..85a6da7 100644
  .foot-links {
    display: flex; flex-wrap: wrap;
    gap: 0 var(--sp-5);
-@@ -3791,6 +3800,10 @@ section:hover .sec-head h2::after { width: 48px; }
+@@ -3791,6 +3804,10 @@ section:hover .sec-head h2::after { width: 48px; }
  .fc-undertow             { --fc: #7FE0C8; --fc-hi: #AEEEDE; --fc-soft: rgba(127, 224, 200, .13); --fc-line: rgba(127, 224, 200, .38); --fc-glow: rgba(127, 224, 200, .32); }
  .fc-meridian             { --fc: #E88FC6; --fc-hi: #F3C2E0; --fc-soft: rgba(232, 143, 198, .13); --fc-line: rgba(232, 143, 198, .38); --fc-glow: rgba(232, 143, 198, .32); }
  .fc-closer               { --fc: #CBA8E8; --fc-hi: #E0CBF3; --fc-soft: rgba(203, 168, 232, .13); --fc-line: rgba(203, 168, 232, .38); --fc-glow: rgba(203, 168, 232, .32); }
@@ -5998,7 +6036,7 @@ index fd01f1f..85a6da7 100644
  .fc-daybreak             { --fc: #FFC9A8; --fc-hi: #FFE0CB; --fc-soft: rgba(255, 201, 168, .13); --fc-line: rgba(255, 201, 168, .38); --fc-glow: rgba(255, 201, 168, .32); }
  .fc-greenwich            { --fc: #AEC6D9; --fc-hi: #D3E2EE; --fc-soft: rgba(174, 198, 217, .12); --fc-line: rgba(174, 198, 217, .36); --fc-glow: rgba(174, 198, 217, .30); }
  .fc-assay                { --fc: #A8E36B; --fc-hi: #C9F09B; --fc-soft: rgba(168, 227, 107, .12); --fc-line: rgba(168, 227, 107, .36); --fc-glow: rgba(168, 227, 107, .30); }
-@@ -4200,6 +4213,13 @@ html { scroll-padding-top: calc(var(--header-h) + 58px); }
+@@ -4200,6 +4217,13 @@ html { scroll-padding-top: calc(var(--header-h) + 58px); }
  .guar-line b { color: var(--accent); }
  .guar-note { font-family: var(--mono); font-size: var(--fs-2xs); color: var(--faint); letter-spacing: .04em; }
  .guar-note a { color: var(--accent); }
@@ -6012,7 +6050,7 @@ index fd01f1f..85a6da7 100644
  .refnote { margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--muted); }
  .refnote b { color: var(--accent); }
  
-@@ -5114,6 +5134,10 @@ body * { text-transform: none !important; letter-spacing: normal !important; }
+@@ -5114,6 +5138,10 @@ body * { text-transform: none !important; letter-spacing: normal !important; }
  .fc-undertow   { --fc: #7FE0C8 !important; --fc-hi: #AEEEDE !important; --fc-soft: rgba(127, 224, 200, .13) !important; --fc-line: rgba(127, 224, 200, .38) !important; --fc-glow: rgba(0, 0, 0, 0) !important; }
  .fc-meridian   { --fc: #E88FC6 !important; --fc-hi: #F3C2E0 !important; --fc-soft: rgba(232, 143, 198, .13) !important; --fc-line: rgba(232, 143, 198, .38) !important; --fc-glow: rgba(0, 0, 0, 0) !important; }
  .fc-closer     { --fc: #CBA8E8 !important; --fc-hi: #E0CBF3 !important; --fc-soft: rgba(203, 168, 232, .13) !important; --fc-line: rgba(203, 168, 232, .38) !important; --fc-glow: rgba(0, 0, 0, 0) !important; }
@@ -6023,16 +6061,39 @@ index fd01f1f..85a6da7 100644
  .fc-daybreak   { --fc: #FFC9A8 !important; --fc-hi: #FFE0CB !important; --fc-soft: rgba(255, 201, 168, .13) !important; --fc-line: rgba(255, 201, 168, .38) !important; --fc-glow: rgba(0, 0, 0, 0) !important; }
  .fc-greenwich  { --fc: #AEC6D9 !important; --fc-hi: #D3E2EE !important; --fc-soft: rgba(174, 198, 217, .12) !important; --fc-line: rgba(174, 198, 217, .36) !important; --fc-glow: rgba(0, 0, 0, 0) !important; }
  .fc-assay      { --fc: #A8E36B !important; --fc-hi: #C9F09B !important; --fc-soft: rgba(168, 227, 107, .12) !important; --fc-line: rgba(168, 227, 107, .36) !important; --fc-glow: rgba(0, 0, 0, 0) !important; }
+@@ -5277,3 +5305,17 @@ a.pr-name[class*="fc-"]:hover { color: var(--fc-hi); }
+ .sx-t th.sx-rodd, .sx-t td.sx-rodd,
+ .sx-t th.sx-f:not(.sx-rodd), .sx-t td.sx-f:not(.sx-rodd),
+ .sx-t th.sx-s, .sx-t td.sx-s { border-left: 1px solid rgba(232, 234, 236, .08); }
++
++/* round 7: Profit (formerly the bare "Net" column) is the first figure
++   the eye should land on after the name -- bold, accent, and a size step
++   above its neighbours (the same shape RoDD used to carry, before r4.9
++   normalized RoDD back down). */
++.sx-t td.sx-net, .sx-t th.sx-net { font-weight: 700; }
++.sx-t td.sx-net { color: var(--accent); font-size: 1.05rem; }
++
++/* the index's above-the-table call to action: a real line, not a grey
++   caption -- bold, accent, sits between the lede and the explanatory note. */
++.sx-cta { margin: 0 0 0.5rem; font-weight: 700; color: var(--accent); font-size: 1rem; }
++
++/* the Multiplier column's one-line context, directly above the table */
++.sx-ddnote { margin: 0 0 0.75rem; font-size: 0.85rem; color: #9aa2a8; }
 diff --git a/index.html b/index.html
-index 6f045e0..9d43b56 100644
+index 2b205b4..f36b438 100644
 --- a/index.html
 +++ b/index.html
-@@ -9,14 +9,14 @@
+@@ -5,18 +5,18 @@
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+ <title>FuturesTradingBots — MNQ &amp; MGC futures strategies</title>
+-<meta name="description" content="Futures strategies for MNQ/NQ and MGC, delivered as TradingView invite-only scripts. Best validated window and full record published for every strategy.">
++<meta name="description" content="Futures strategies for MNQ and MGC, delivered as TradingView invite-only scripts. Best validated window and full record published for every strategy.">
  <link rel="canonical" href="https://futurestradingbots.com/">
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&amp;family=Fragment+Mono&amp;display=swap" rel="stylesheet">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="sx-doc">
  <a class="skip" href="#main">Skip to content</a>
@@ -6044,13 +6105,14 @@ index 6f045e0..9d43b56 100644
      <nav class="nav-links" aria-label="Main">
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
-@@ -43,31 +43,38 @@
+@@ -43,31 +43,41 @@
    <div class="sx-hero">
      <div class="sx-hero-copy">
        <h1 class="sx-hero-h1">Strategies engineered to be <span class="hl">measured</span>, not believed.</h1>
 -      <p class="sx-lede">15 futures strategies for MNQ/NQ and MGC, sold as TradingView invite-only scripts
-+      <p class="sx-lede">11 futures strategies for MNQ/NQ and MGC, sold as TradingView invite-only scripts
++      <p class="sx-lede">11 futures strategies for MNQ and MGC, sold as TradingView invite-only scripts
        and activated to your TradingView username within 24 hours.</p>
++      <p class="sx-cta">Select any of the profitable strategies below to see the trade details and results.</p>
        <p class="sx-note">Figures below are each strategy&rsquo;s best validated window, commissions and slippage modeled.
 -      The full record, good or ugly, is published on every specification page. Ranked by return on maximum
 -      drawdown (RoDD). Net is the window&rsquo;s closed-trade total at the validated run&rsquo;s position size.</p>
@@ -6065,12 +6127,16 @@ index 6f045e0..9d43b56 100644
 +    <div class="coverflow" aria-label="Flagship strategies"><input class="cf-r" type="radio" name="cf-sel" id="cf-0" checked><input class="cf-r" type="radio" name="cf-sel" id="cf-1"><input class="cf-r" type="radio" name="cf-sel" id="cf-2"><input class="cf-r" type="radio" name="cf-sel" id="cf-3"><input class="cf-r" type="radio" name="cf-sel" id="cf-4"><input class="cf-r" type="radio" name="cf-sel" id="cf-5"><div class="cf-stage"><div class="cf-pane fc-continuum"><a class="cf-link" href="/strategies/continuum.html"><svg class="cf-spark" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="cf-sg-continuum" x1="0" y1="0" x2="0" y2="1"><stop class="cf-sg-a" offset="0"/><stop class="cf-sg-b" offset="1"/></linearGradient></defs><path class="cf-spark-area" fill="url(#cf-sg-continuum)" d="M6.0 300.0 L6.0 292.5 24.6 294.0 43.1 289.6 61.7 284.1 80.2 280.4 98.8 275.3 117.4 270.9 135.9 263.9 154.5 256.2 173.1 250.2 191.6 242.0 210.2 241.9 228.8 240.5 247.3 234.0 265.9 230.8 284.4 229.9 303.0 219.0 321.6 213.7 340.1 210.8 358.7 203.4 377.2 201.2 395.8 195.6 414.4 192.5 432.9 195.2 451.5 188.0 470.1 185.5 488.6 181.7 507.2 177.9 525.8 175.3 544.3 172.9 562.9 171.2 581.4 166.0 600.0 163.8 618.6 154.3 637.1 154.3 655.7 144.5 674.2 138.5 692.8 131.5 711.4 121.5 729.9 116.1 748.5 111.0 767.1 111.1 785.6 104.6 804.2 100.5 822.8 99.8 841.3 96.4 859.9 88.1 878.4 86.2 897.0 75.6 915.6 73.0 934.1 64.7 952.7 60.5 971.2 59.9 989.8 53.9 1008.4 48.8 1026.9 45.9 1045.5 30.6 1064.1 24.0 1082.6 21.5 1101.2 20.6 1119.8 17.0 1138.3 13.0 1156.9 13.0 1175.4 12.3 1194.0 6.0 L1194.0 300.0 Z"/><path class="cf-spark-line" fill="none" d="M6.0 292.5 24.6 294.0 43.1 289.6 61.7 284.1 80.2 280.4 98.8 275.3 117.4 270.9 135.9 263.9 154.5 256.2 173.1 250.2 191.6 242.0 210.2 241.9 228.8 240.5 247.3 234.0 265.9 230.8 284.4 229.9 303.0 219.0 321.6 213.7 340.1 210.8 358.7 203.4 377.2 201.2 395.8 195.6 414.4 192.5 432.9 195.2 451.5 188.0 470.1 185.5 488.6 181.7 507.2 177.9 525.8 175.3 544.3 172.9 562.9 171.2 581.4 166.0 600.0 163.8 618.6 154.3 637.1 154.3 655.7 144.5 674.2 138.5 692.8 131.5 711.4 121.5 729.9 116.1 748.5 111.0 767.1 111.1 785.6 104.6 804.2 100.5 822.8 99.8 841.3 96.4 859.9 88.1 878.4 86.2 897.0 75.6 915.6 73.0 934.1 64.7 952.7 60.5 971.2 59.9 989.8 53.9 1008.4 48.8 1026.9 45.9 1045.5 30.6 1064.1 24.0 1082.6 21.5 1101.2 20.6 1119.8 17.0 1138.3 13.0 1156.9 13.0 1175.4 12.3 1194.0 6.0"/></svg><span class="cf-glyphwrap" aria-hidden="true"><svg class="glyph cf-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6" stroke-dasharray="1.4 3.5" opacity=".6"/><circle cx="12" cy="12" r="5.4"/><path d="M12 12V8.6M12 12l2.6 1.8"/></svg></span><span class="cf-star"><b>676%</b><i>#1 RoDD</i></span><span class="cf-foot"><span class="cf-titlerow"><b class="cf-name">Continuum</b><span class="cf-price">$1279<small>/mo</small></span></span><span class="cf-gain">$270,600</span><span class="cf-win">on a $5,000 drawdown &middot; best window</span></span></a><label class="cf-pick" for="cf-1"><span class="sr-only">Bring Continuum to the front</span></label></div><div class="cf-pane fc-slipstream"><a class="cf-link" href="/strategies/slipstream.html"><svg class="cf-spark" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="cf-sg-slipstream" x1="0" y1="0" x2="0" y2="1"><stop class="cf-sg-a" offset="0"/><stop class="cf-sg-b" offset="1"/></linearGradient></defs><path class="cf-spark-area" fill="url(#cf-sg-slipstream)" d="M6.0 300.0 L6.0 294.0 24.6 289.1 43.1 284.1 61.7 281.4 80.2 270.9 98.8 276.9 117.4 258.2 135.9 247.0 154.5 249.7 173.1 252.6 191.6 247.6 210.2 246.0 228.8 230.3 247.3 223.4 265.9 215.1 284.4 211.4 303.0 207.4 321.6 202.5 340.1 207.5 358.7 207.9 377.2 199.8 395.8 195.4 414.4 190.5 432.9 185.5 451.5 177.0 470.1 171.7 488.6 175.3 507.2 170.2 525.8 162.9 544.3 160.5 562.9 155.8 581.4 153.1 600.0 141.4 618.6 144.4 637.1 141.6 655.7 137.8 674.2 134.8 692.8 137.0 711.4 133.0 729.9 120.1 748.5 110.0 767.1 105.3 785.6 102.9 804.2 93.1 822.8 94.6 841.3 92.3 859.9 93.5 878.4 82.5 897.0 83.5 915.6 73.9 934.1 54.1 952.7 54.0 971.2 52.8 989.8 48.5 1008.4 38.3 1026.9 40.1 1045.5 30.6 1064.1 25.4 1082.6 26.6 1101.2 21.7 1119.8 21.0 1138.3 12.0 1156.9 12.2 1175.4 6.0 1194.0 6.8 L1194.0 300.0 Z"/><path class="cf-spark-line" fill="none" d="M6.0 294.0 24.6 289.1 43.1 284.1 61.7 281.4 80.2 270.9 98.8 276.9 117.4 258.2 135.9 247.0 154.5 249.7 173.1 252.6 191.6 247.6 210.2 246.0 228.8 230.3 247.3 223.4 265.9 215.1 284.4 211.4 303.0 207.4 321.6 202.5 340.1 207.5 358.7 207.9 377.2 199.8 395.8 195.4 414.4 190.5 432.9 185.5 451.5 177.0 470.1 171.7 488.6 175.3 507.2 170.2 525.8 162.9 544.3 160.5 562.9 155.8 581.4 153.1 600.0 141.4 618.6 144.4 637.1 141.6 655.7 137.8 674.2 134.8 692.8 137.0 711.4 133.0 729.9 120.1 748.5 110.0 767.1 105.3 785.6 102.9 804.2 93.1 822.8 94.6 841.3 92.3 859.9 93.5 878.4 82.5 897.0 83.5 915.6 73.9 934.1 54.1 952.7 54.0 971.2 52.8 989.8 48.5 1008.4 38.3 1026.9 40.1 1045.5 30.6 1064.1 25.4 1082.6 26.6 1101.2 21.7 1119.8 21.0 1138.3 12.0 1156.9 12.2 1175.4 6.0 1194.0 6.8"/></svg><span class="cf-glyphwrap" aria-hidden="true"><svg class="glyph cf-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h11a2.8 2.8 0 1 0-2.6-3.8"/><path d="M3.5 12.5H18a3 3 0 1 1-2.8 4"/><path d="M3.5 17h7"/></svg></span><span class="cf-star"><b>382%</b><i>#3 RoDD</i></span><span class="cf-foot"><span class="cf-titlerow"><b class="cf-name">Slipstream</b><span class="cf-price">$709<small>/mo</small></span></span><span class="cf-gain">$153,000</span><span class="cf-win">on a $5,000 drawdown &middot; best window</span></span></a><label class="cf-pick" for="cf-2"><span class="sr-only">Bring Slipstream to the front</span></label></div><div class="cf-pane fc-aftershock"><a class="cf-link" href="/strategies/aftershock.html"><svg class="cf-spark" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="cf-sg-aftershock" x1="0" y1="0" x2="0" y2="1"><stop class="cf-sg-a" offset="0"/><stop class="cf-sg-b" offset="1"/></linearGradient></defs><path class="cf-spark-area" fill="url(#cf-sg-aftershock)" d="M6.0 300.0 L6.0 293.5 24.6 291.5 43.1 285.4 61.7 294.0 80.2 291.2 98.8 287.0 117.4 288.7 135.9 276.4 154.5 269.0 173.1 273.4 191.6 267.0 210.2 264.6 228.8 262.0 247.3 260.1 265.9 253.0 284.4 254.3 303.0 253.0 321.6 242.3 340.1 240.3 358.7 236.8 377.2 234.0 395.8 230.5 414.4 234.5 432.9 234.8 451.5 231.6 470.1 224.1 488.6 223.4 507.2 219.5 525.8 219.4 544.3 211.8 562.9 204.4 581.4 201.0 600.0 191.5 618.6 190.2 637.1 187.7 655.7 185.8 674.2 172.2 692.8 172.1 711.4 174.0 729.9 163.5 748.5 157.6 767.1 157.1 785.6 142.6 804.2 125.4 822.8 124.2 841.3 118.1 859.9 99.4 878.4 90.9 897.0 90.7 915.6 84.3 934.1 87.1 952.7 77.4 971.2 77.3 989.8 76.7 1008.4 66.3 1026.9 69.3 1045.5 71.7 1064.1 61.3 1082.6 59.9 1101.2 57.2 1119.8 48.7 1138.3 48.8 1156.9 19.6 1175.4 6.0 1194.0 6.8 L1194.0 300.0 Z"/><path class="cf-spark-line" fill="none" d="M6.0 293.5 24.6 291.5 43.1 285.4 61.7 294.0 80.2 291.2 98.8 287.0 117.4 288.7 135.9 276.4 154.5 269.0 173.1 273.4 191.6 267.0 210.2 264.6 228.8 262.0 247.3 260.1 265.9 253.0 284.4 254.3 303.0 253.0 321.6 242.3 340.1 240.3 358.7 236.8 377.2 234.0 395.8 230.5 414.4 234.5 432.9 234.8 451.5 231.6 470.1 224.1 488.6 223.4 507.2 219.5 525.8 219.4 544.3 211.8 562.9 204.4 581.4 201.0 600.0 191.5 618.6 190.2 637.1 187.7 655.7 185.8 674.2 172.2 692.8 172.1 711.4 174.0 729.9 163.5 748.5 157.6 767.1 157.1 785.6 142.6 804.2 125.4 822.8 124.2 841.3 118.1 859.9 99.4 878.4 90.9 897.0 90.7 915.6 84.3 934.1 87.1 952.7 77.4 971.2 77.3 989.8 76.7 1008.4 66.3 1026.9 69.3 1045.5 71.7 1064.1 61.3 1082.6 59.9 1101.2 57.2 1119.8 48.7 1138.3 48.8 1156.9 19.6 1175.4 6.0 1194.0 6.8"/></svg><span class="cf-glyphwrap" aria-hidden="true"><svg class="glyph cf-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14.5h3.4l2-8.2 3 12.4 2.4-9 1.6 4.8H21"/></svg></span><span class="cf-star"><b>197%</b><i>#2 RoDD</i></span><span class="cf-foot"><span class="cf-titlerow"><b class="cf-name">Aftershock</b><span class="cf-price">$699<small>/mo</small></span></span><span class="cf-gain">$157,950</span><span class="cf-win">on a $5,000 drawdown &middot; best window</span></span></a><label class="cf-pick" for="cf-3"><span class="sr-only">Bring Aftershock to the front</span></label></div><div class="cf-pane fc-relay"><a class="cf-link" href="/strategies/relay.html"><svg class="cf-spark" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="cf-sg-relay" x1="0" y1="0" x2="0" y2="1"><stop class="cf-sg-a" offset="0"/><stop class="cf-sg-b" offset="1"/></linearGradient></defs><path class="cf-spark-area" fill="url(#cf-sg-relay)" d="M6.0 300.0 L6.0 294.0 24.6 291.3 43.1 292.3 61.7 290.1 80.2 291.0 98.8 291.4 117.4 284.6 135.9 278.6 154.5 271.8 173.1 271.6 191.6 280.1 210.2 281.1 228.8 269.0 247.3 268.4 265.9 265.6 284.4 264.1 303.0 263.4 321.6 253.4 340.1 251.0 358.7 247.6 377.2 244.3 395.8 250.6 414.4 250.8 432.9 247.8 451.5 238.0 470.1 233.4 488.6 231.3 507.2 227.2 525.8 220.1 544.3 210.8 562.9 208.8 581.4 203.0 600.0 197.8 618.6 195.5 637.1 193.6 655.7 181.6 674.2 180.4 692.8 173.1 711.4 166.9 729.9 170.7 748.5 149.6 767.1 143.1 785.6 142.4 804.2 125.2 822.8 117.7 841.3 107.4 859.9 103.5 878.4 97.6 897.0 97.7 915.6 89.9 934.1 84.6 952.7 84.5 971.2 85.4 989.8 77.8 1008.4 69.9 1026.9 65.2 1045.5 59.0 1064.1 51.6 1082.6 53.8 1101.2 46.2 1119.8 47.0 1138.3 26.4 1156.9 10.1 1175.4 7.4 1194.0 6.0 L1194.0 300.0 Z"/><path class="cf-spark-line" fill="none" d="M6.0 294.0 24.6 291.3 43.1 292.3 61.7 290.1 80.2 291.0 98.8 291.4 117.4 284.6 135.9 278.6 154.5 271.8 173.1 271.6 191.6 280.1 210.2 281.1 228.8 269.0 247.3 268.4 265.9 265.6 284.4 264.1 303.0 263.4 321.6 253.4 340.1 251.0 358.7 247.6 377.2 244.3 395.8 250.6 414.4 250.8 432.9 247.8 451.5 238.0 470.1 233.4 488.6 231.3 507.2 227.2 525.8 220.1 544.3 210.8 562.9 208.8 581.4 203.0 600.0 197.8 618.6 195.5 637.1 193.6 655.7 181.6 674.2 180.4 692.8 173.1 711.4 166.9 729.9 170.7 748.5 149.6 767.1 143.1 785.6 142.4 804.2 125.2 822.8 117.7 841.3 107.4 859.9 103.5 878.4 97.6 897.0 97.7 915.6 89.9 934.1 84.6 952.7 84.5 971.2 85.4 989.8 77.8 1008.4 69.9 1026.9 65.2 1045.5 59.0 1064.1 51.6 1082.6 53.8 1101.2 46.2 1119.8 47.0 1138.3 26.4 1156.9 10.1 1175.4 7.4 1194.0 6.0"/></svg><span class="cf-glyphwrap" aria-hidden="true"><svg class="glyph cf-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1"/><rect x="7" y="8" width="5.6" height="4"/><path d="M15.4 8.8h1.8M15.4 11.4h1.8M7 15.8h10"/></svg></span><span class="cf-star"><b>174%</b><i>RoDD</i></span><span class="cf-foot"><span class="cf-titlerow"><b class="cf-name">Headline Risk</b><span class="cf-price">$649<small>/mo</small></span></span><span class="cf-gain">$139,250</span><span class="cf-win">on a $5,000 drawdown &middot; best window</span></span></a><label class="cf-pick" for="cf-4"><span class="sr-only">Bring Headline Risk to the front</span></label></div><div class="cf-pane fc-undertow"><a class="cf-link" href="/strategies/undertow.html"><svg class="cf-spark" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false"><defs><linearGradient id="cf-sg-undertow" x1="0" y1="0" x2="0" y2="1"><stop class="cf-sg-a" offset="0"/><stop class="cf-sg-b" offset="1"/></linearGradient></defs><path class="cf-spark-area" fill="url(#cf-sg-undertow)" d="M6.0 300.0 L6.0 294.0 24.6 289.3 43.1 284.2 61.7 278.2 80.2 260.6 98.8 255.8 117.4 249.5 135.9 233.1 154.5 235.2 173.1 226.6 191.6 216.8 210.2 212.7 228.8 207.0 247.3 201.5 265.9 188.1 284.4 183.7 303.0 172.0 321.6 157.7 340.1 171.2 358.7 165.9 377.2 157.7 395.8 146.7 414.4 140.2 432.9 139.3 451.5 135.0 470.1 128.6 488.6 130.3 507.2 119.6 525.8 118.4 544.3 111.8 562.9 106.2 581.4 116.9 600.0 112.1 618.6 106.3 637.1 98.4 655.7 93.9 674.2 102.1 692.8 94.9 711.4 102.0 729.9 88.3 748.5 83.3 767.1 88.7 785.6 85.0 804.2 87.0 822.8 76.5 841.3 66.6 859.9 65.6 878.4 63.4 897.0 63.1 915.6 58.7 934.1 52.2 952.7 43.8 971.2 37.5 989.8 35.9 1008.4 34.2 1026.9 23.1 1045.5 27.4 1064.1 15.5 1082.6 17.5 1101.2 9.8 1119.8 10.8 1138.3 6.0 1156.9 6.6 1175.4 12.5 1194.0 14.2 L1194.0 300.0 Z"/><path class="cf-spark-line" fill="none" d="M6.0 294.0 24.6 289.3 43.1 284.2 61.7 278.2 80.2 260.6 98.8 255.8 117.4 249.5 135.9 233.1 154.5 235.2 173.1 226.6 191.6 216.8 210.2 212.7 228.8 207.0 247.3 201.5 265.9 188.1 284.4 183.7 303.0 172.0 321.6 157.7 340.1 171.2 358.7 165.9 377.2 157.7 395.8 146.7 414.4 140.2 432.9 139.3 451.5 135.0 470.1 128.6 488.6 130.3 507.2 119.6 525.8 118.4 544.3 111.8 562.9 106.2 581.4 116.9 600.0 112.1 618.6 106.3 637.1 98.4 655.7 93.9 674.2 102.1 692.8 94.9 711.4 102.0 729.9 88.3 748.5 83.3 767.1 88.7 785.6 85.0 804.2 87.0 822.8 76.5 841.3 66.6 859.9 65.6 878.4 63.4 897.0 63.1 915.6 58.7 934.1 52.2 952.7 43.8 971.2 37.5 989.8 35.9 1008.4 34.2 1026.9 23.1 1045.5 27.4 1064.1 15.5 1082.6 17.5 1101.2 9.8 1119.8 10.8 1138.3 6.0 1156.9 6.6 1175.4 12.5 1194.0 14.2"/></svg><span class="cf-glyphwrap" aria-hidden="true"><svg class="glyph cf-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4h15"/><path d="M12 4v5"/><path d="M8 9h8"/><path d="M9.8 13.5h4.4v2.6H9.8z"/><path d="M4.5 20h15"/></svg></span><span class="cf-star"><b>218%</b><i>RoDD</i></span><span class="cf-foot"><span class="cf-titlerow"><b class="cf-name">The Press</b><span class="cf-price">$419<small>/mo</small></span></span><span class="cf-gain">$87,150</span><span class="cf-win">on a $5,000 drawdown &middot; best window</span></span></a><label class="cf-pick" for="cf-5"><span class="sr-only">Bring The Press to the front</span></label></div></div><div class="cf-dots"><label class="cf-dot fc-continuum" for="cf-1"><span class="sr-only">Continuum</span></label><label class="cf-dot fc-slipstream" for="cf-2"><span class="sr-only">Slipstream</span></label><label class="cf-dot fc-aftershock" for="cf-3"><span class="sr-only">Aftershock</span></label><label class="cf-dot fc-relay" for="cf-4"><span class="sr-only">Headline Risk</span></label><label class="cf-dot fc-undertow" for="cf-5"><span class="sr-only">The Press</span></label><label class="cf-play" for="cf-0"><span class="cf-play-ico" aria-hidden="true"></span><span class="sr-only">Resume the automatic rotation</span></label></div></div>
    </div>
  
++  <p class="sx-ddnote">All strategies simulated based on a $10,000 or less drawdown.</p>
++
  <section class="sx-sec">
-   <h2>MNQ / NQ · Nasdaq futures</h2>
-   <div class="sx-scroll" tabindex="0" role="region" aria-label="MNQ / NQ · Nasdaq futures specification table, scrolls horizontally on small screens">
+-  <h2>MNQ / NQ · Nasdaq futures</h2>
+-  <div class="sx-scroll" tabindex="0" role="region" aria-label="MNQ / NQ · Nasdaq futures specification table, scrolls horizontally on small screens">
++  <h2>MNQ · Nasdaq futures</h2>
++  <div class="sx-scroll" tabindex="0" role="region" aria-label="MNQ · Nasdaq futures specification table, scrolls horizontally on small screens">
    <table class="sx-t">
 -    <caption class="sr-only">MNQ / NQ · Nasdaq futures: 10 strategies ranked by best-window return on maximum drawdown</caption>
-+    <caption class="sr-only">MNQ / NQ · Nasdaq futures: 11 strategies ranked by average monthly return on drawdown</caption>
++    <caption class="sr-only">MNQ · Nasdaq futures: 11 strategies ranked by average monthly return on drawdown</caption>
      <thead><tr>
        <th scope="col" class="sx-r" aria-label="Rank">#</th>
        <th scope="col" class="sx-n">Strategy</th>
@@ -6078,7 +6144,8 @@ index 6f045e0..9d43b56 100644
 +      <th scope="col" class="sx-f sx-rodd"><abbr title="Average monthly return on drawdown">RoDD/mo</abbr></th>
        <th scope="col" class="sx-f">Win</th>
        <th scope="col" class="sx-f">PF</th>
-       <th scope="col" class="sx-f">Net</th>
+-      <th scope="col" class="sx-f">Net</th>
++      <th scope="col" class="sx-f sx-net">Profit</th>
 +      <th scope="col" class="sx-f"><abbr title="Median losing trade at the shown multiplier">Risk/trade</abbr></th>
 +      <th scope="col" class="sx-f"><abbr title="Average monthly net profit divided by risk per trade">RoR/mo</abbr></th>
 +      <th scope="col" class="sx-f"><abbr title="Multiplier the published figures are shown at">Mult</abbr></th>
@@ -6086,11 +6153,11 @@ index 6f045e0..9d43b56 100644
        <th scope="col" class="sx-f sx-p">$ / mo</th>
      </tr></thead>
 -    <tbody><tr><td class="sx-r">1</td><td class="sx-n"><a class="fc-continuum" href="/strategies/continuum.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6" stroke-dasharray="1.4 3.5" opacity=".6"/><circle cx="12" cy="12" r="5.4"/><path d="M12 12V8.6M12 12l2.6 1.8"/></svg>Continuum</a><span class="sx-sub">MNQ 24H Multi-Leg Book</span><span class="sx-book">book · combines 11 strategies</span></td><td class="sx-f sx-rodd">3,920%</td><td class="sx-f">73.9%</td><td class="sx-f">1.89</td><td class="sx-f">$72.5k</td><td class="sx-s">24h</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/continuum-mnq" rel="noopener">$909</a></td></tr><tr><td class="sx-r">2</td><td class="sx-n"><a class="fc-aftershock" href="/strategies/aftershock.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14.5h3.4l2-8.2 3 12.4 2.4-9 1.6 4.8H21"/></svg>Aftershock</a><span class="sx-sub">MNQ 08:30 Range Fade V4</span></td><td class="sx-f sx-rodd">3,159%</td><td class="sx-f">60.4%</td><td class="sx-f">2.48</td><td class="sx-f">$53.0k</td><td class="sx-s">08:30 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/aftershock-mnq" rel="noopener">$699</a></td></tr><tr><td class="sx-r">3</td><td class="sx-n"><a class="fc-tailwind" href="/strategies/tailwind.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 5.5 13 10l-4.5 4.5L4 10z"/><path d="M15.5 9.5 20 14l-4.5 4.5L11 14z"/></svg>The Alloy</a><span class="sx-sub">MNQ FVG Continuation Two-Stage</span></td><td class="sx-f sx-rodd">3,016%</td><td class="sx-f">78.4%</td><td class="sx-f">2.25</td><td class="sx-f">$53.2k</td><td class="sx-s">day + evening</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/tailwind.html" rel="noopener">$699</a></td></tr><tr><td class="sx-r">4</td><td class="sx-n"><a class="fc-relay" href="/strategies/relay.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1"/><rect x="7" y="8" width="5.6" height="4"/><path d="M15.4 8.8h1.8M15.4 11.4h1.8M7 15.8h10"/></svg>Headline Risk</a><span class="sx-sub">MNQ 08:30 Range Fade V6 All-Days</span></td><td class="sx-f sx-rodd">2,785%</td><td class="sx-f">64.8%</td><td class="sx-f">2.37</td><td class="sx-f">$68.9k</td><td class="sx-s">08:30 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/relay.html" rel="noopener">$649</a></td></tr><tr><td class="sx-r">5</td><td class="sx-n"><a class="fc-slipstream" href="/strategies/slipstream.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h11a2.8 2.8 0 1 0-2.6-3.8"/><path d="M3.5 12.5H18a3 3 0 1 1-2.8 4"/><path d="M3.5 17h7"/></svg>Slipstream</a><span class="sx-sub">MNQ FVG Continuation 10m</span></td><td class="sx-f sx-rodd">2,778%</td><td class="sx-f">77.1%</td><td class="sx-f">2.25</td><td class="sx-f">$49.2k</td><td class="sx-s">all sessions</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/slipstream-mnq" rel="noopener">$649</a></td></tr><tr><td class="sx-r">6</td><td class="sx-n"><a class="fc-ignition" href="/strategies/ignition.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4c-.5 2.5-2 3.8-3.4 5.3-1.5 1.6-2.4 3.2-2.4 5.2a5.8 5.8 0 0 0 11.6 0c0-2.5-1.3-4.3-2.9-6-1.2-1.3-2.4-2.6-2.9-4.5z"/><path d="M12 12.6c-1 1.3-2 2.2-2 3.6a2 2 0 0 0 4 0c0-1.4-1-2.3-2-3.6z"/></svg>Ignition</a><span class="sx-sub">NQ 09:30 Opening Range Breakout</span></td><td class="sx-f sx-rodd">2,423%</td><td class="sx-f">81.8%</td><td class="sx-f">5.44</td><td class="sx-f">$102.0k</td><td class="sx-s">09:30 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/ignition-nq" rel="noopener">$299</a></td></tr><tr><td class="sx-r">7</td><td class="sx-n"><a class="fc-undertow" href="/strategies/undertow.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4h15"/><path d="M12 4v5"/><path d="M8 9h8"/><path d="M9.8 13.5h4.4v2.6H9.8z"/><path d="M4.5 20h15"/></svg>The Press</a><span class="sx-sub">MNQ Overnight Level Reclaim 5m</span></td><td class="sx-f sx-rodd">1,730%</td><td class="sx-f">73.9%</td><td class="sx-f">1.89</td><td class="sx-f">$25.1k</td><td class="sx-s">overnight</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/undertow.html" rel="noopener">$419</a></td></tr><tr><td class="sx-r">8</td><td class="sx-n"><a class="fc-meridian" href="/strategies/meridian.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.4" r="1.1"/><path d="M12 5.4 16.6 15"/><circle cx="17.6" cy="17.2" r="2.5"/><path d="M6 14.6a10 10 0 0 0 4 4.2"/></svg>The Pendulum</a><span class="sx-sub">MNQ 13:00 Confirmed Fade</span></td><td class="sx-f sx-rodd">1,626%</td><td class="sx-f">82.5%</td><td class="sx-f">2.64</td><td class="sx-f">$9.9k</td><td class="sx-s">13:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/meridian.html" rel="noopener">$399</a></td></tr><tr><td class="sx-r">9</td><td class="sx-n"><a class="fc-closer" href="/strategies/closer.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14.2" r="5.3"/><path d="M8.9 10.1a4.4 4.4 0 0 1 6.2 0"/></svg>Counterweight</a><span class="sx-sub">MNQ 15:30 PM Fade</span></td><td class="sx-f sx-rodd">1,106%</td><td class="sx-f">55.6%</td><td class="sx-f">2.04</td><td class="sx-f">$4.0k</td><td class="sx-s">15:30 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/closer.html" rel="noopener">$219</a></td></tr><tr><td class="sx-r">10</td><td class="sx-n"><a class="fc-daybreak" href="/strategies/daybreak.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.8 3.6a8.4 8.4 0 1 0 5.6 13.9A8.4 8.4 0 0 1 14.8 3.6z"/><path d="M5.6 5.8v2.6M4.3 7.1h2.6" opacity=".7"/></svg>The Night Shift</a><span class="sx-sub">MNQ 20:00 Tokyo Open Drive</span></td><td class="sx-f sx-rodd">486%</td><td class="sx-f">59.4%</td><td class="sx-f">1.70</td><td class="sx-f">$3.2k</td><td class="sx-s">20:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/daybreak.html" rel="noopener">$139</a></td></tr></tbody>
-+    <tbody><tr><td class="sx-r">1</td><td class="sx-n"><a class="fc-continuum" href="/strategies/continuum.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6" stroke-dasharray="1.4 3.5" opacity=".6"/><circle cx="12" cy="12" r="5.4"/><path d="M12 12V8.6M12 12l2.6 1.8"/></svg>Continuum</a><span class="sx-sub">MNQ 24H Multi-Leg Book</span><span class="sx-book">book · combines 8 strategies</span></td><td class="sx-f sx-rodd">676%</td><td class="sx-f">73.3%</td><td class="sx-f">2.14</td><td class="sx-f">$472.2k</td><td class="sx-f">$732</td><td class="sx-f">8075%</td><td class="sx-f">&times;5</td><td class="sx-s">24h</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/continuum-mnq" rel="noopener">$1279</a></td></tr><tr><td class="sx-r">2</td><td class="sx-n"><a class="fc-slipstream" href="/strategies/slipstream.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h11a2.8 2.8 0 1 0-2.6-3.8"/><path d="M3.5 12.5H18a3 3 0 1 1-2.8 4"/><path d="M3.5 17h7"/></svg>Slipstream</a><span class="sx-sub">MNQ 10m FVG Continuation</span></td><td class="sx-f sx-rodd">382%</td><td class="sx-f">78.2%</td><td class="sx-f">2.18</td><td class="sx-f">$269.9k</td><td class="sx-f">$930</td><td class="sx-f">3696%</td><td class="sx-f">&times;5</td><td class="sx-s">all sessions</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/slipstream-mnq" rel="noopener">$709</a></td></tr><tr><td class="sx-r">3</td><td class="sx-n"><a class="fc-undertow" href="/strategies/undertow.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4h15"/><path d="M12 4v5"/><path d="M8 9h8"/><path d="M9.8 13.5h4.4v2.6H9.8z"/><path d="M4.5 20h15"/></svg>The Press</a><span class="sx-sub">MNQ Overnight Level Sweep-Reclaim (5m)</span></td><td class="sx-f sx-rodd">218%</td><td class="sx-f">72.9%</td><td class="sx-f">1.80</td><td class="sx-f">$158.9k</td><td class="sx-f">$2,178</td><td class="sx-f">945%</td><td class="sx-f">&times;6</td><td class="sx-s">overnight</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/undertow.html" rel="noopener">$419</a></td></tr><tr><td class="sx-r">4</td><td class="sx-n"><a class="fc-aftershock" href="/strategies/aftershock.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14.5h3.4l2-8.2 3 12.4 2.4-9 1.6 4.8H21"/></svg>Aftershock</a><span class="sx-sub">MNQ 08:30 Range Fade — Mon/Wed/Fri</span></td><td class="sx-f sx-rodd">197%</td><td class="sx-f">60.4%</td><td class="sx-f">2.48</td><td class="sx-f">$265.1k</td><td class="sx-f">$1,595</td><td class="sx-f">1063%</td><td class="sx-f">&times;5</td><td class="sx-s">08:30 ET Mon/Wed/Fri</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/aftershock-mnq" rel="noopener">$699</a></td></tr><tr><td class="sx-r">5</td><td class="sx-n"><a class="fc-confluence" href="/strategies/confluence.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.4 11 12l-7 6.6"/><path d="M20 5.4 13 12l7 6.6"/><circle cx="12" cy="12" r="1.3"/></svg>Confluence</a><span class="sx-sub">MNQ FVG Continuation + Level Reclaim (2-leg)</span><span class="sx-book">book · combines 2 strategies</span></td><td class="sx-f sx-rodd">188%</td><td class="sx-f">73.2%</td><td class="sx-f">1.48</td><td class="sx-f">$120.3k</td><td class="sx-f">$605</td><td class="sx-f">2502%</td><td class="sx-f">&times;5</td><td class="sx-s">overnight + 24h</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/confluence.html" rel="noopener">$369</a></td></tr><tr><td class="sx-r">6</td><td class="sx-n"><a class="fc-relay" href="/strategies/relay.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1"/><rect x="7" y="8" width="5.6" height="4"/><path d="M15.4 8.8h1.8M15.4 11.4h1.8M7 15.8h10"/></svg>Headline Risk</a><span class="sx-sub">MNQ 08:30 Range Fade — All Days</span></td><td class="sx-f sx-rodd">174%</td><td class="sx-f">64.8%</td><td class="sx-f">2.37</td><td class="sx-f">$275.7k</td><td class="sx-f">$1,130</td><td class="sx-f">1557%</td><td class="sx-f">&times;4</td><td class="sx-s">08:30 ET every trading day</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/relay.html" rel="noopener">$649</a></td></tr><tr><td class="sx-r">7</td><td class="sx-n"><a class="fc-lantern" href="/strategies/lantern.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.4v2.4"/><path d="M8 6.4h8"/><path d="M7.6 6.9 8.7 17a3.3 3.3 0 0 0 6.6 0l1.1-10.1z"/><path d="M8.3 15h7.4M9 10.6h6"/><path d="M12 19.6v2"/></svg>Lantern</a><span class="sx-sub">MNQ 20:00 Tokyo Open Fade</span></td><td class="sx-f sx-rodd">152%</td><td class="sx-f">64.0%</td><td class="sx-f">2.40</td><td class="sx-f">$105.7k</td><td class="sx-f">$610</td><td class="sx-f">2208%</td><td class="sx-f">&times;4</td><td class="sx-s">20:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/lantern.html" rel="noopener">$309</a></td></tr><tr><td class="sx-r">8</td><td class="sx-n"><a class="fc-undercurrent" href="/strategies/undercurrent.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.4 10.4c2-3.6 4.3-3.6 6.3 0s4.3 3.6 6.3 0 3-3.2 3.6-2.1" opacity=".55"/><path d="M3.4 15.4c2-3.6 4.3-3.6 6.3 0s4.3 3.6 6.3 0 3-3.2 3.6-2.1"/></svg>Undercurrent</a><span class="sx-sub">MNQ 08:30 Range Fade — Tue/Thu</span></td><td class="sx-f sx-rodd">132%</td><td class="sx-f">69.6%</td><td class="sx-f">2.64</td><td class="sx-f">$78.7k</td><td class="sx-f">$1,292</td><td class="sx-f">779%</td><td class="sx-f">&times;7</td><td class="sx-s">08:30 ET Tue/Thu</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/undercurrent.html" rel="noopener">$209</a></td></tr><tr><td class="sx-r">9</td><td class="sx-n"><a class="fc-first-light" href="/strategies/first-light.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 15.5h16.8"/><path d="M6.8 15.5a5.2 5.2 0 0 1 10.4 0"/><path d="M12 6v2.4M6.6 9.2l1.7 1.5M17.4 9.2l-1.7 1.5"/></svg>First Light</a><span class="sx-sub">MNQ 19:00 Sydney Open Drive</span></td><td class="sx-f sx-rodd">124%</td><td class="sx-f">82.2%</td><td class="sx-f">2.61</td><td class="sx-f">$94.0k</td><td class="sx-f">$2,948</td><td class="sx-f">418%</td><td class="sx-f">&times;11</td><td class="sx-s">19:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/first-light.html" rel="noopener">$199</a></td></tr><tr><td class="sx-r">10</td><td class="sx-n"><a class="fc-meridian" href="/strategies/meridian.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.4" r="1.1"/><path d="M12 5.4 16.6 15"/><circle cx="17.6" cy="17.2" r="2.5"/><path d="M6 14.6a10 10 0 0 0 4 4.2"/></svg>The Pendulum</a><span class="sx-sub">MNQ 13:00 Confirmed Fade</span></td><td class="sx-f sx-rodd">117%</td><td class="sx-f">82.7%</td><td class="sx-f">2.68</td><td class="sx-f">$159.9k</td><td class="sx-f">$1,728</td><td class="sx-f">677%</td><td class="sx-f">&times;16</td><td class="sx-s">13:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/meridian.html" rel="noopener">$399</a></td></tr><tr><td class="sx-r">11</td><td class="sx-n"><a class="fc-closer" href="/strategies/closer.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14.2" r="5.3"/><path d="M8.9 10.1a4.4 4.4 0 0 1 6.2 0"/></svg>Counterweight</a><span class="sx-sub">MNQ 15:30 PM Fade</span></td><td class="sx-f sx-rodd">78%</td><td class="sx-f">66.3%</td><td class="sx-f">2.34</td><td class="sx-f">$122.1k</td><td class="sx-f">$1,188</td><td class="sx-f">646%</td><td class="sx-f">&times;18</td><td class="sx-s">15:30 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/closer.html" rel="noopener">$269</a></td></tr></tbody>
++    <tbody><tr><td class="sx-r">1</td><td class="sx-n"><a class="fc-continuum" href="/strategies/continuum.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6" stroke-dasharray="1.4 3.5" opacity=".6"/><circle cx="12" cy="12" r="5.4"/><path d="M12 12V8.6M12 12l2.6 1.8"/></svg>Continuum</a><span class="sx-sub">MNQ 24H Multi-Leg Book</span><span class="sx-book">book · combines 8 strategies</span></td><td class="sx-f sx-rodd">676%</td><td class="sx-f">73.3%</td><td class="sx-f">2.14</td><td class="sx-f sx-net">$472.2k</td><td class="sx-f">$732</td><td class="sx-f">8075%</td><td class="sx-f">&times;5</td><td class="sx-s">24h</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/continuum-mnq" rel="noopener">$1279</a></td></tr><tr><td class="sx-r">2</td><td class="sx-n"><a class="fc-slipstream" href="/strategies/slipstream.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8h11a2.8 2.8 0 1 0-2.6-3.8"/><path d="M3.5 12.5H18a3 3 0 1 1-2.8 4"/><path d="M3.5 17h7"/></svg>Slipstream</a><span class="sx-sub">MNQ 10m FVG Continuation</span></td><td class="sx-f sx-rodd">382%</td><td class="sx-f">78.2%</td><td class="sx-f">2.18</td><td class="sx-f sx-net">$269.9k</td><td class="sx-f">$930</td><td class="sx-f">3696%</td><td class="sx-f">&times;5</td><td class="sx-s">all sessions</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/slipstream-mnq" rel="noopener">$709</a></td></tr><tr><td class="sx-r">3</td><td class="sx-n"><a class="fc-undertow" href="/strategies/undertow.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 4h15"/><path d="M12 4v5"/><path d="M8 9h8"/><path d="M9.8 13.5h4.4v2.6H9.8z"/><path d="M4.5 20h15"/></svg>The Press</a><span class="sx-sub">MNQ Overnight Level Sweep-Reclaim (5m)</span></td><td class="sx-f sx-rodd">218%</td><td class="sx-f">72.9%</td><td class="sx-f">1.80</td><td class="sx-f sx-net">$158.9k</td><td class="sx-f">$2,178</td><td class="sx-f">945%</td><td class="sx-f">&times;6</td><td class="sx-s">overnight</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/undertow.html" rel="noopener">$419</a></td></tr><tr><td class="sx-r">4</td><td class="sx-n"><a class="fc-aftershock" href="/strategies/aftershock.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14.5h3.4l2-8.2 3 12.4 2.4-9 1.6 4.8H21"/></svg>Aftershock</a><span class="sx-sub">MNQ 08:30 Range Fade — Mon/Wed/Fri</span></td><td class="sx-f sx-rodd">197%</td><td class="sx-f">60.4%</td><td class="sx-f">2.48</td><td class="sx-f sx-net">$265.1k</td><td class="sx-f">$1,595</td><td class="sx-f">1063%</td><td class="sx-f">&times;5</td><td class="sx-s">08:30 ET Mon/Wed/Fri</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="https://whop.com/goal33systems/aftershock-mnq" rel="noopener">$699</a></td></tr><tr><td class="sx-r">5</td><td class="sx-n"><a class="fc-confluence" href="/strategies/confluence.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.4 11 12l-7 6.6"/><path d="M20 5.4 13 12l7 6.6"/><circle cx="12" cy="12" r="1.3"/></svg>Confluence</a><span class="sx-sub">MNQ FVG Continuation + Level Reclaim (2-leg)</span><span class="sx-book">book · combines 2 strategies</span></td><td class="sx-f sx-rodd">188%</td><td class="sx-f">73.2%</td><td class="sx-f">1.48</td><td class="sx-f sx-net">$120.3k</td><td class="sx-f">$605</td><td class="sx-f">2502%</td><td class="sx-f">&times;5</td><td class="sx-s">overnight + 24h</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/confluence.html" rel="noopener">$369</a></td></tr><tr><td class="sx-r">6</td><td class="sx-n"><a class="fc-relay" href="/strategies/relay.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1"/><rect x="7" y="8" width="5.6" height="4"/><path d="M15.4 8.8h1.8M15.4 11.4h1.8M7 15.8h10"/></svg>Headline Risk</a><span class="sx-sub">MNQ 08:30 Range Fade — All Days</span></td><td class="sx-f sx-rodd">174%</td><td class="sx-f">64.8%</td><td class="sx-f">2.37</td><td class="sx-f sx-net">$275.7k</td><td class="sx-f">$1,130</td><td class="sx-f">1557%</td><td class="sx-f">&times;4</td><td class="sx-s">08:30 ET every trading day</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/relay.html" rel="noopener">$649</a></td></tr><tr><td class="sx-r">7</td><td class="sx-n"><a class="fc-lantern" href="/strategies/lantern.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.4v2.4"/><path d="M8 6.4h8"/><path d="M7.6 6.9 8.7 17a3.3 3.3 0 0 0 6.6 0l1.1-10.1z"/><path d="M8.3 15h7.4M9 10.6h6"/><path d="M12 19.6v2"/></svg>Lantern</a><span class="sx-sub">MNQ 20:00 Tokyo Open Fade</span></td><td class="sx-f sx-rodd">152%</td><td class="sx-f">64.0%</td><td class="sx-f">2.40</td><td class="sx-f sx-net">$105.7k</td><td class="sx-f">$610</td><td class="sx-f">2208%</td><td class="sx-f">&times;4</td><td class="sx-s">20:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/lantern.html" rel="noopener">$309</a></td></tr><tr><td class="sx-r">8</td><td class="sx-n"><a class="fc-undercurrent" href="/strategies/undercurrent.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.4 10.4c2-3.6 4.3-3.6 6.3 0s4.3 3.6 6.3 0 3-3.2 3.6-2.1" opacity=".55"/><path d="M3.4 15.4c2-3.6 4.3-3.6 6.3 0s4.3 3.6 6.3 0 3-3.2 3.6-2.1"/></svg>Undercurrent</a><span class="sx-sub">MNQ 08:30 Range Fade — Tue/Thu</span></td><td class="sx-f sx-rodd">132%</td><td class="sx-f">69.6%</td><td class="sx-f">2.64</td><td class="sx-f sx-net">$78.7k</td><td class="sx-f">$1,292</td><td class="sx-f">779%</td><td class="sx-f">&times;7</td><td class="sx-s">08:30 ET Tue/Thu</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/undercurrent.html" rel="noopener">$209</a></td></tr><tr><td class="sx-r">9</td><td class="sx-n"><a class="fc-first-light" href="/strategies/first-light.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 15.5h16.8"/><path d="M6.8 15.5a5.2 5.2 0 0 1 10.4 0"/><path d="M12 6v2.4M6.6 9.2l1.7 1.5M17.4 9.2l-1.7 1.5"/></svg>First Light</a><span class="sx-sub">MNQ 19:00 Sydney Open Drive</span></td><td class="sx-f sx-rodd">124%</td><td class="sx-f">82.2%</td><td class="sx-f">2.61</td><td class="sx-f sx-net">$94.0k</td><td class="sx-f">$2,948</td><td class="sx-f">418%</td><td class="sx-f">&times;11</td><td class="sx-s">19:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/first-light.html" rel="noopener">$199</a></td></tr><tr><td class="sx-r">10</td><td class="sx-n"><a class="fc-meridian" href="/strategies/meridian.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4.4" r="1.1"/><path d="M12 5.4 16.6 15"/><circle cx="17.6" cy="17.2" r="2.5"/><path d="M6 14.6a10 10 0 0 0 4 4.2"/></svg>The Pendulum</a><span class="sx-sub">MNQ 13:00 Confirmed Fade</span></td><td class="sx-f sx-rodd">117%</td><td class="sx-f">82.7%</td><td class="sx-f">2.68</td><td class="sx-f sx-net">$159.9k</td><td class="sx-f">$1,728</td><td class="sx-f">677%</td><td class="sx-f">&times;16</td><td class="sx-s">13:00 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/meridian.html" rel="noopener">$399</a></td></tr><tr><td class="sx-r">11</td><td class="sx-n"><a class="fc-closer" href="/strategies/closer.html"><svg class="glyph sx-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14.2" r="5.3"/><path d="M8.9 10.1a4.4 4.4 0 0 1 6.2 0"/></svg>Counterweight</a><span class="sx-sub">MNQ 15:30 PM Fade</span></td><td class="sx-f sx-rodd">78%</td><td class="sx-f">66.3%</td><td class="sx-f">2.34</td><td class="sx-f sx-net">$122.1k</td><td class="sx-f">$1,188</td><td class="sx-f">646%</td><td class="sx-f">&times;18</td><td class="sx-s">15:30 ET</td><td class="sx-f sx-p"><!-- WHOP: replace this product-page link with the Whop checkout link --><a href="/strategies/closer.html" rel="noopener">$269</a></td></tr></tbody>
    </table>
    </div>
  </section>
-@@ -76,30 +83,36 @@
+@@ -76,30 +86,36 @@
    <h2>MGC · Gold futures</h2>
    <div class="sx-scroll" tabindex="0" role="region" aria-label="MGC · Gold futures specification table, scrolls horizontally on small screens">
    <table class="sx-t">
@@ -6103,7 +6170,8 @@ index 6f045e0..9d43b56 100644
 +      <th scope="col" class="sx-f sx-rodd"><abbr title="Average monthly return on drawdown">RoDD/mo</abbr></th>
        <th scope="col" class="sx-f">Win</th>
        <th scope="col" class="sx-f">PF</th>
-       <th scope="col" class="sx-f">Net</th>
+-      <th scope="col" class="sx-f">Net</th>
++      <th scope="col" class="sx-f sx-net">Profit</th>
 +      <th scope="col" class="sx-f"><abbr title="Median losing trade at the shown multiplier">Risk/trade</abbr></th>
 +      <th scope="col" class="sx-f"><abbr title="Average monthly net profit divided by risk per trade">RoR/mo</abbr></th>
 +      <th scope="col" class="sx-f"><abbr title="Multiplier the published figures are shown at">Mult</abbr></th>
@@ -6132,15 +6200,15 @@ index 6f045e0..9d43b56 100644
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/plan.html b/plan.html
-index 3f83b75..eb7bcc6 100644
+index c208da5..b0544d3 100644
 --- a/plan.html
 +++ b/plan.html
 @@ -18,14 +18,14 @@
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
@@ -6678,15 +6746,15 @@ index 3f83b75..eb7bcc6 100644
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/privacy.html b/privacy.html
-index 09ab2d7..645cffb 100644
+index 1b481dd..ef286cf 100644
 --- a/privacy.html
 +++ b/privacy.html
 @@ -18,14 +18,14 @@
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
@@ -6737,7 +6805,7 @@ index 5a7071f..0ffc6c5 100644
    <url><loc>https://futurestradingbots.com/strategies/all-access.html</loc><lastmod>2026-09-02</lastmod></url>
  </urlset>
 diff --git a/strategies/aftershock.html b/strategies/aftershock.html
-index f6bf20e..e29c3fe 100644
+index 181f54b..8f35ccd 100644
 --- a/strategies/aftershock.html
 +++ b/strategies/aftershock.html
 @@ -6,11 +6,11 @@
@@ -6758,8 +6826,8 @@ index f6bf20e..e29c3fe 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-aftershock">
  <a class="skip" href="#main">Skip to content</a>
@@ -6944,15 +7012,15 @@ index f6bf20e..e29c3fe 100644
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/all-access.html b/strategies/all-access.html
-index 6ed4735..0236a0a 100644
+index 824f70e..9270eb0 100644
 --- a/strategies/all-access.html
 +++ b/strategies/all-access.html
 @@ -18,14 +18,14 @@
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
@@ -7001,7 +7069,7 @@ index 6ed4735..0236a0a 100644
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/assay.html b/strategies/assay.html
 deleted file mode 100644
-index 3876d36..0000000
+index 5b64909..0000000
 --- a/strategies/assay.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -7025,7 +7093,7 @@ index 3876d36..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-assay">
 -<a class="skip" href="#main">Skip to content</a>
@@ -7256,7 +7324,7 @@ index 3876d36..0000000
 -</body>
 -</html>
 diff --git a/strategies/closer.html b/strategies/closer.html
-index f1483fd..8da8f62 100644
+index 20bf335..2cab846 100644
 --- a/strategies/closer.html
 +++ b/strategies/closer.html
 @@ -6,11 +6,11 @@
@@ -7277,8 +7345,8 @@ index f1483fd..8da8f62 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-closer">
  <a class="skip" href="#main">Skip to content</a>
@@ -7480,7 +7548,7 @@ index f1483fd..8da8f62 100644
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/confluence.html b/strategies/confluence.html
 new file mode 100644
-index 0000000..4ec617a
+index 0000000..1d8b1b0
 --- /dev/null
 +++ b/strategies/confluence.html
 @@ -0,0 +1,260 @@
@@ -7504,7 +7572,7 @@ index 0000000..4ec617a
 +<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 +<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 +<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
 +</head>
 +<body class="pdp-theme fc-confluence">
 +<a class="skip" href="#main">Skip to content</a>
@@ -7745,7 +7813,7 @@ index 0000000..4ec617a
 +</body>
 +</html>
 diff --git a/strategies/continuum.html b/strategies/continuum.html
-index fd6e723..5d95a21 100644
+index 12f7248..530616a 100644
 --- a/strategies/continuum.html
 +++ b/strategies/continuum.html
 @@ -6,11 +6,11 @@
@@ -7766,8 +7834,8 @@ index fd6e723..5d95a21 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-continuum">
  <a class="skip" href="#main">Skip to content</a>
@@ -7971,7 +8039,7 @@ index fd6e723..5d95a21 100644
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/daybreak.html b/strategies/daybreak.html
 deleted file mode 100644
-index c47936d..0000000
+index 4d2841f..0000000
 --- a/strategies/daybreak.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -7995,7 +8063,7 @@ index c47936d..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-daybreak">
 -<a class="skip" href="#main">Skip to content</a>
@@ -8227,7 +8295,7 @@ index c47936d..0000000
 -</html>
 diff --git a/strategies/first-light.html b/strategies/first-light.html
 new file mode 100644
-index 0000000..89b5edf
+index 0000000..4cf26a6
 --- /dev/null
 +++ b/strategies/first-light.html
 @@ -0,0 +1,255 @@
@@ -8251,7 +8319,7 @@ index 0000000..89b5edf
 +<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 +<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 +<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
 +</head>
 +<body class="pdp-theme fc-first-light">
 +<a class="skip" href="#main">Skip to content</a>
@@ -8488,7 +8556,7 @@ index 0000000..89b5edf
 +</html>
 diff --git a/strategies/greenwich.html b/strategies/greenwich.html
 deleted file mode 100644
-index 82e17a5..0000000
+index 4d9fc70..0000000
 --- a/strategies/greenwich.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -8512,7 +8580,7 @@ index 82e17a5..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-greenwich">
 -<a class="skip" href="#main">Skip to content</a>
@@ -8744,7 +8812,7 @@ index 82e17a5..0000000
 -</html>
 diff --git a/strategies/ignition.html b/strategies/ignition.html
 deleted file mode 100644
-index b13c399..0000000
+index 55ec6e7..0000000
 --- a/strategies/ignition.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -8768,7 +8836,7 @@ index b13c399..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-ignition">
 -<a class="skip" href="#main">Skip to content</a>
@@ -9000,7 +9068,7 @@ index b13c399..0000000
 -</html>
 diff --git a/strategies/kilo.html b/strategies/kilo.html
 deleted file mode 100644
-index c077c2e..0000000
+index a2e6183..0000000
 --- a/strategies/kilo.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -9024,7 +9092,7 @@ index c077c2e..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-kilo">
 -<a class="skip" href="#main">Skip to content</a>
@@ -9256,7 +9324,7 @@ index c077c2e..0000000
 -</html>
 diff --git a/strategies/lantern.html b/strategies/lantern.html
 new file mode 100644
-index 0000000..d18ce56
+index 0000000..50c349e
 --- /dev/null
 +++ b/strategies/lantern.html
 @@ -0,0 +1,258 @@
@@ -9280,7 +9348,7 @@ index 0000000..d18ce56
 +<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 +<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 +<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
 +</head>
 +<body class="pdp-theme fc-lantern">
 +<a class="skip" href="#main">Skip to content</a>
@@ -9519,7 +9587,7 @@ index 0000000..d18ce56
 +</body>
 +</html>
 diff --git a/strategies/meridian.html b/strategies/meridian.html
-index 350a1ef..0b7e451 100644
+index 507c643..0a2abbe 100644
 --- a/strategies/meridian.html
 +++ b/strategies/meridian.html
 @@ -6,11 +6,11 @@
@@ -9540,8 +9608,8 @@ index 350a1ef..0b7e451 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-meridian">
  <a class="skip" href="#main">Skip to content</a>
@@ -9736,7 +9804,7 @@ index 350a1ef..0b7e451 100644
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/midas.html b/strategies/midas.html
 deleted file mode 100644
-index 94d9976..0000000
+index 29d4e36..0000000
 --- a/strategies/midas.html
 +++ /dev/null
 @@ -1,255 +0,0 @@
@@ -9760,7 +9828,7 @@ index 94d9976..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-midas">
 -<a class="skip" href="#main">Skip to content</a>
@@ -9997,7 +10065,7 @@ index 94d9976..0000000
 -</html>
 diff --git a/strategies/print.html b/strategies/print.html
 deleted file mode 100644
-index 8c10b05..0000000
+index e723d9f..0000000
 --- a/strategies/print.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -10021,7 +10089,7 @@ index 8c10b05..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-print">
 -<a class="skip" href="#main">Skip to content</a>
@@ -10252,7 +10320,7 @@ index 8c10b05..0000000
 -</body>
 -</html>
 diff --git a/strategies/relay.html b/strategies/relay.html
-index 5b66d91..811b6a9 100644
+index 37e3759..979257f 100644
 --- a/strategies/relay.html
 +++ b/strategies/relay.html
 @@ -6,11 +6,11 @@
@@ -10273,8 +10341,8 @@ index 5b66d91..811b6a9 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-relay">
  <a class="skip" href="#main">Skip to content</a>
@@ -10458,7 +10526,7 @@ index 5b66d91..811b6a9 100644
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/slipstream.html b/strategies/slipstream.html
-index 16762e8..dfe1b75 100644
+index c1cf490..07d1469 100644
 --- a/strategies/slipstream.html
 +++ b/strategies/slipstream.html
 @@ -6,11 +6,11 @@
@@ -10479,8 +10547,8 @@ index 16762e8..dfe1b75 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-slipstream">
  <a class="skip" href="#main">Skip to content</a>
@@ -10678,7 +10746,7 @@ index 16762e8..dfe1b75 100644
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/strategies/tailwind.html b/strategies/tailwind.html
 deleted file mode 100644
-index 9fa2217..0000000
+index e422c97..0000000
 --- a/strategies/tailwind.html
 +++ /dev/null
 @@ -1,250 +0,0 @@
@@ -10702,7 +10770,7 @@ index 9fa2217..0000000
 -<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 -<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 -<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
 -</head>
 -<body class="pdp-theme fc-tailwind">
 -<a class="skip" href="#main">Skip to content</a>
@@ -10934,7 +11002,7 @@ index 9fa2217..0000000
 -</html>
 diff --git a/strategies/undercurrent.html b/strategies/undercurrent.html
 new file mode 100644
-index 0000000..8b810de
+index 0000000..7c7ec28
 --- /dev/null
 +++ b/strategies/undercurrent.html
 @@ -0,0 +1,255 @@
@@ -10958,7 +11026,7 @@ index 0000000..8b810de
 +<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 +<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
 +<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
 +</head>
 +<body class="pdp-theme fc-undercurrent">
 +<a class="skip" href="#main">Skip to content</a>
@@ -11194,7 +11262,7 @@ index 0000000..8b810de
 +</body>
 +</html>
 diff --git a/strategies/undertow.html b/strategies/undertow.html
-index 39921a2..f93b15a 100644
+index 3f95dd4..04a834c 100644
 --- a/strategies/undertow.html
 +++ b/strategies/undertow.html
 @@ -6,11 +6,11 @@
@@ -11215,8 +11283,8 @@ index 39921a2..f93b15a 100644
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body class="pdp-theme fc-undertow">
  <a class="skip" href="#main">Skip to content</a>
@@ -11417,15 +11485,15 @@ index 39921a2..f93b15a 100644
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/success.html b/success.html
-index c22d9a2..9588bb2 100644
+index a41c49c..850099d 100644
 --- a/success.html
 +++ b/success.html
 @@ -19,14 +19,14 @@
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
@@ -11446,15 +11514,15 @@ index c22d9a2..9588bb2 100644
        <a href="/">All strategies</a>
        <a href="/strategies/all-access.html">All-Access</a>
 diff --git a/terms.html b/terms.html
-index 6e8867c..4b1eee2 100644
+index 6ad246d..e8e3ef4 100644
 --- a/terms.html
 +++ b/terms.html
 @@ -18,14 +18,14 @@
  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fragment+Mono&display=swap">
  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
--<link rel="stylesheet" href="/assets/main.css?v=94070959">
-+<link rel="stylesheet" href="/assets/main.css?v=6aba729a">
+-<link rel="stylesheet" href="/assets/main.css?v=89ec8074">
++<link rel="stylesheet" href="/assets/main.css?v=57d5a42f">
  </head>
  <body>
  <a class="skip" href="#main">Skip to content</a>
