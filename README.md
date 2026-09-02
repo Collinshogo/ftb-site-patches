@@ -73,3 +73,16 @@ $125 · $14–18k → $200 · $18–20k → $275 · $20k+ → $350; Midas $550 �
 All-Access $1,500 (books included; $1,200/mo with 3 months up front). Every index table now shares one column plan so
 rows align across sections; section titles centred. The Performance chart now plots the best window only, from zero at its start (Lantern, The Alloy and every other page). Index hero rewritten: "Automated Futures Trading" headline, SEO title and meta description, the "Use code AFT" lines removed. Every strategy row on the index is clickable anywhere (full-cell links, row hover).
 Same three commands with `v8` in the names.
+
+
+## Whop checkout links (how they reach the site session)
+The Whop store is created by the Whop publisher in the research repo, which the site session cannot read. The flow:
+1. The session holding the Whop key runs `_work/tools/whop_publish.py` (research repo). It writes
+   `research/products/WHOP_PUBLISH_RESULT.json` = `{slug: {id, url}}` with the real per-product checkout URLs.
+2. That session copies the file here verbatim as `data/whop_links.json` and pushes this repo.
+3. The site session runs, from the site clone root: `python3 <patches>/apply_whop_links.py <patches>/data/whop_links.json`,
+   regenerates (`_tools/rebuild_index.py`, `gen_pages.py`, `gen_plan.py`), verifies no `goal33systems` link remains
+   (`grep -c goal33systems index.html strategies/*.html`), commits and pushes.
+**Status 2026-09-03:** the publisher has NOT run yet (it needs a session started with the `WHOP_API_KEY` /
+`WHOP_COMPANY_ID` environment variables). Until `data/whop_links.json` exists here there is no links patch to apply;
+nothing should be guessed — a wrong link sends a buyer to the wrong product.
