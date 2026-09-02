@@ -71,5 +71,5 @@ registered as an unlisted draft pending a larger-target vector.
 Round 7 (re-cut, same file): **new pricing** by average monthly profit at the shown multiplier — ≤$10k → $75 · $10–14k →
 $125 · $14–18k → $200 · $18–20k → $275 · $20k+ → $350; Midas $550 · Triad $700 · Slipstream $700 · Continuum $950 · The Books $1,200 ·
 All-Access $1,500 (books included; $1,200/mo with 3 months up front). Every index table now shares one column plan so
-rows align across sections; section titles centred. The Performance chart now plots the best window only, from zero at its start (Lantern, The Alloy and every other page).
+rows align across sections; section titles centred. The Performance chart now plots the best window only, from zero at its start (Lantern, The Alloy and every other page). Index hero rewritten: "Automated Futures Trading" headline, SEO title and meta description, the "Use code AFT" lines removed.
 Same three commands with `v8` in the names.
