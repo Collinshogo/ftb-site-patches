@@ -68,4 +68,8 @@ cells larger; Headline Risk's worst month verified (Aug 25, a real losing month,
 Round 6 (re-cut, same file): the index gains **Coming soon** sections for MYM, M2K, MES, additional gold and SIL, listing
 only constructions that passed the validation sweep (no prices or links yet); Recoil (MNQ 08:30 failed-break reclaim) is
 registered as an unlisted draft pending a larger-target vector.
+Round 7 (re-cut, same file): **new pricing** by average monthly profit at the shown multiplier — ≤$10k → $75 · $10–14k →
+$125 · $14–18k → $200 · $18–20k → $275 · $20k+ → $350; Midas $550 · Triad $700 · Continuum $950 · The Books $1,200 ·
+All-Access $1,500 (books included; $1,200/mo with 3 months up front). Every index table now shares one column plan so
+rows align across sections; section titles centred.
 Same three commands with `v8` in the names.
