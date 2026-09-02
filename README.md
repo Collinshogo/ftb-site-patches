@@ -45,3 +45,13 @@ from … to …" + the best-RoDD window statement and a downloadable CSV of that
 **The Alloy** (the gold Level-Reclaim + FVG-Continuation combo, ×3) join the lineup; The Print and The Fix are
 parked until the fresh exports of their re-cut vectors land (they return in v8 with The Ingot). `data/` carries
 every listed product's Strategy-Tester JSON, including the two combos.
+
+## v8 — 2026-09-03 (base: goal33-site `main` @ 3165f01 = v7 applied; apply v8 on top)
+`site_patch_aft-lineup-v8.patch` — the product page's report is now a facsimile of TradingView's Strategy Tester:
+top strip (name tab · date chip with DEEP badge · 25 K USD · Default detalization · Script execution), four
+alternate tabs — **Overview** (Key stats + the Performance chart with the cumulative PnL line, per-trade bars,
+right axis, day strip, Performance-analysis pill row + Breakdown cells), **Performance** (Breakdown · Periodical
+monthly table · Profits and losses by signal / by side), **Trades** (Distribution histogram + donut, Streaks,
+details), **List of trades** (+ Side column). Zero JS, no inline styles, fits the column at 1400 / 1024 / 375.
+`data/*.json` rows now carry side · signal · qty · return % (columns listed in each file's `trades_columns`).
+Same three commands with `v8` in the names.
