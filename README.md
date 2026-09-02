@@ -38,3 +38,10 @@ held back until its standalone matches the book leg); every product page carries
 from … to …" + the best-RoDD window statement and a downloadable CSV of that window's trades
 (`strategies/data/<slug>-best-window-trades.csv`). Pipeline: gen_pages → rebuild_index → gen_plan → css restamp
 (all already run; the patch carries the generated pages). `data/` gains the five MGC Strategy-Tester JSONs.
+
+## v7 — 2026-09-03 (base: goal33-site `main` @ 8c73a46; SUPERSEDES v6 — apply v7 only)
+`site_patch_aft-lineup-v7.patch` — same three commands as v6 with `v7` in the names. Everything in v6 plus:
+**Triad** (the MNQ Strong Book: FVG continuation + both 08:30 range fades, shown at ×3 by the owner's call) and
+**The Alloy** (the gold Level-Reclaim + FVG-Continuation combo, ×3) join the lineup; The Print and The Fix are
+parked until the fresh exports of their re-cut vectors land (they return in v8 with The Ingot). `data/` carries
+every listed product's Strategy-Tester JSON, including the two combos.
