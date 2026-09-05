@@ -141,3 +141,11 @@ index row links to the page instead of the `/#books` anchor.
 Apply: `git checkout -b aft-the-books-page main && git am < site_patch_the-books-page.patch`, then
 `python3 _tools/gen_pages.py && python3 _tools/rebuild_index.py && python3 _tools/gen_plan.py`, verify
 `ls strategies/the-books.html` and that the index row href is `/strategies/the-books.html`, and push.
+
+
+## `site_patch_retire-confluence.patch` — 2026-09-05 (base: `main` tip)
+Confluence is retired on Collin's order. The 2026-window run proved the two legs together earn $12.5k less than their
+sum and RoDD 17.74 against the FVG leg's 26.08 alone (129 entries lost to collisions; drawdowns barely offset).
+Removes the catalog row, the product page, its trade data and CSV; All-Access combined value recomputed. Apply with
+`git am`, regenerate, confirm `grep -ril confluence index.html strategies/` is empty, push. The Whop product is archived
+separately by the director.
